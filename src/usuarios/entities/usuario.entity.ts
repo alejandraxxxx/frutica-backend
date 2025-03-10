@@ -1,4 +1,5 @@
 import { Cliente } from "src/clientes/entities/cliente.entity";
+import { Credencial } from "src/credenciales/entities/credencial.entity";
 import { Direccion } from "src/direccion/entities/direccion.entity";
 import { InventarioMovimiento } from "src/inventario-movimiento/entities/inventario-movimiento.entity";
 import { Notificacion } from "src/notificaciones/entities/notificacion.entity";
@@ -89,4 +90,7 @@ export class Usuario {
 
     @OneToMany(() => InventarioMovimiento, movimiento => movimiento.usuario)
     movimientosInventario: InventarioMovimiento[];
+
+    @OneToMany(() => Credencial, credencial => credencial.usuario)
+    credenciales: Credencial[];
 }

@@ -18,7 +18,7 @@ import { Precio } from './precio/entities/precio.entity';
 import { EnvioDomicilio } from './envio-domicilio/entities/envio-domicilio.entity';
 import { DetalleFactura } from './detalle-factura/entities/detalle-factura.entity';
 import { Notificacion } from './notificaciones//entities/notificacion.entity';
-
+import { Credencial } from './credenciales/entities/credencial.entity';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -41,6 +41,8 @@ import { EnvioDomicilioModule } from './envio-domicilio/envio-domicilio.module';
 import { DetalleFacturaModule } from './detalle-factura/detalle-factura.module';
 import { NotificacionesModule } from './notificaciones/notificaciones.module';
 import { AuthModule } from './auth/auth.module';
+import { CredencialesModule } from './credenciales/credenciales.module';
+
 
 
 @Module({
@@ -51,14 +53,14 @@ import { AuthModule } from './auth/auth.module';
       port: 3306, // Puerto predeterminado de MySQL
       username: 'root', // Usuario de la base de datos
       password: '', // Contraseña de MySQL (deja vacío si no tiene)
-      database: 'frutica-app', // Nombre de la base de datos en phpMyAdmin
+      database: 'frutica-app1', // Nombre de la base de datos en phpMyAdmin
       entities: [Usuario, Empleado, Cliente, Categoria, Producto, Pedido, DetallePedido, Factura, FormaPago, Comentario, InventarioMovimiento,
-        Direccion, Venta, Precio, EnvioDomicilio, DetalleFactura, Notificacion],
+        Direccion, Venta, Precio, EnvioDomicilio, DetalleFactura, Notificacion, Credencial ],
       synchronize: true, // ⚠️ Solo en desarrollo, en producción usa migraciones
     }),
     UsuariosModule, EmpleadosModule, ClientesModule, CategoriaModule, ProductosModule, PedidosModule, DetallePedidoModule,
     FacturaModule, FormaPagoModule, ComentarioModule, InventarioMovimientoModule, DireccionModule, VentaModule,
-    PrecioModule, EnvioDomicilioModule, DetalleFacturaModule, NotificacionesModule, AuthModule, ],
+    PrecioModule, EnvioDomicilioModule, DetalleFacturaModule, NotificacionesModule, AuthModule, CredencialesModule, ],
     
   controllers: [AppController],
   providers: [AppService],
