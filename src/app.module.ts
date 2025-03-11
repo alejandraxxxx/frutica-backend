@@ -34,7 +34,7 @@ import { FacturaModule } from './factura/factura.module';
 import { FormaPagoModule } from './forma-pago/forma-pago.module';
 import { ComentarioModule } from './comentario/comentario.module';
 import { InventarioMovimientoModule } from './inventario-movimiento/inventario-movimiento.module';
-import { DireccionModule } from './direccion/direccion.module';
+import { DireccionesModule} from './direccion/direccion.module';
 import { VentaModule } from './venta/venta.module';
 import { PrecioModule } from './precio/precio.module';
 import { EnvioDomicilioModule } from './envio-domicilio/envio-domicilio.module';
@@ -42,11 +42,15 @@ import { DetalleFacturaModule } from './detalle-factura/detalle-factura.module';
 import { NotificacionesModule } from './notificaciones/notificaciones.module';
 import { AuthModule } from './auth/auth.module';
 import { CredencialesModule } from './credenciales/credenciales.module';
+import { ConfigModule } from '@nestjs/config';
 
 
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
     TypeOrmModule.forRoot({
       type: 'mysql',
       host: 'localhost', // O la IP del servidor donde está phpMyAdmin
@@ -59,7 +63,7 @@ import { CredencialesModule } from './credenciales/credenciales.module';
       synchronize: true, // ⚠️ Solo en desarrollo, en producción usa migraciones
     }),
     UsuariosModule, EmpleadosModule, ClientesModule, CategoriaModule, ProductosModule, PedidosModule, DetallePedidoModule,
-    FacturaModule, FormaPagoModule, ComentarioModule, InventarioMovimientoModule, DireccionModule, VentaModule,
+    FacturaModule, FormaPagoModule, ComentarioModule, InventarioMovimientoModule, DireccionesModule, VentaModule,
     PrecioModule, EnvioDomicilioModule, DetalleFacturaModule, NotificacionesModule, AuthModule, CredencialesModule, ],
     
   controllers: [AppController],
