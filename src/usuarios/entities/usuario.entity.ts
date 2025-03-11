@@ -5,12 +5,11 @@ import { InventarioMovimiento } from "src/inventario-movimiento/entities/inventa
 import { Notificacion } from "src/notificaciones/entities/notificacion.entity";
 import { Pedido } from "src/pedidos/entities/pedidos.entity";
 import { Venta } from "src/venta/entities/venta.entity";
-import { Entity, Unique, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, ManyToMany, JoinTable } from "typeorm";
+import { Entity, Unique, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, ManyToMany, JoinTable, OneToOne, JoinColumn } from "typeorm";
 
 
 @Entity()
-@Unique(["username"])
-@Unique(["sucursal_k"])
+
 export class Usuario {
     @PrimaryGeneratedColumn()
     usuario_k: number;
@@ -24,11 +23,11 @@ export class Usuario {
     @Column({ length: 45, nullable: true })
     apellido_materno: string;
 
+    @Column({ length: 10 })
+    sexo: string;  
+
     @Column({ length: 10, nullable: true })
     telefono: string;
-
-    @Column({ length: 45 })
-    username: string;
 
     @Column({ default: false })
     login_facebook: boolean;
@@ -45,9 +44,6 @@ export class Usuario {
 
     @Column({ length: 45, default: 'activo' })
     estado_ENUM: string;
-
-    @Column()
-    sucursal_k: number;
 
     @Column({ type: "timestamp", default: () => "CURRENT_TIMESTAMP" })
     fecha_registro: Date;
@@ -85,6 +81,7 @@ export class Usuario {
     @OneToMany(() => InventarioMovimiento, movimiento => movimiento.usuario)
     movimientosInventario: InventarioMovimiento[];
 
-    @OneToMany(() => Credencial, credencial => credencial.usuario)
-    credenciales: Credencial[];
+    @OneToOne(() => Credencial, { cascade: true })
+    @JoinColumn()
+    credencial: Credencial;
 }

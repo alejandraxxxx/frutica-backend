@@ -1,4 +1,4 @@
-import { IsString, IsEmail, IsOptional, IsInt, IsBoolean, MinLength, MaxLength, IsNotEmpty } from 'class-validator';
+import { IsString, IsEmail, IsOptional, IsInt, IsBoolean, MinLength, MaxLength, IsNotEmpty, Matches } from 'class-validator';
 
 export class CreateUsuarioDto {
     @IsString()
@@ -8,6 +8,12 @@ export class CreateUsuarioDto {
     @IsString()
     @MaxLength(45)
     apellido_paterno: string;
+
+
+    @IsString()
+    @MaxLength(10)
+    sexo: string;
+
 
     @IsOptional()
     @IsString()
@@ -19,19 +25,18 @@ export class CreateUsuarioDto {
     @MaxLength(10)
     telefono?: string;
 
-    @IsString()
-    @MaxLength(45)
-    username: string;
-
     @IsEmail()
-    @MaxLength(60)
-    email: string;
+    correo_electronico: string;
 
-    @IsString()
-    @IsNotEmpty({ message: "La contraseña no puede estar vacía." })  // ✅ Asegura que la contraseña esté presente
-    @MinLength(6, { message: "La contraseña debe tener al menos 6 caracteres." })
-    @MaxLength(255)
-    password_hash: string;
+    @IsNotEmpty()
+    @MinLength(6, { message: 'La contraseña debe tener al menos 6 caracteres' })
+    @Matches(/(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])/, {
+        message: 'La contraseña debe incluir al menos una mayúscula, una minúscula y un número',
+    })
+    contrasena: string;
+
+    @IsNotEmpty()
+    contrasenaRepetida: string;
 
     @IsOptional()
     @IsBoolean()
@@ -53,8 +58,6 @@ export class CreateUsuarioDto {
     @MaxLength(45)
     estado_ENUM: string;
 
-    @IsInt()
-    sucursal_k: number;
 
     @IsOptional()
     @IsString()

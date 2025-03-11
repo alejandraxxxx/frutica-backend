@@ -7,11 +7,11 @@ import { UpdateUsuarioDto } from './dto/update-usuario.dto';
 export class UsuariosController {
   constructor(private readonly usuariosService: UsuariosService) {}
 
-  @Post()
-  create(@Body() createUsuarioDto: CreateUsuarioDto) {
-    return this.usuariosService.create(createUsuarioDto);
+  @Post('registro')
+  async crearUsuario(@Body() createUsuarioDto: CreateUsuarioDto) {
+      return this.usuariosService.create(createUsuarioDto);
   }
-
+  
   @Get()
   findAll() {
     return this.usuariosService.findAll();
