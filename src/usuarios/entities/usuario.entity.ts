@@ -9,7 +9,6 @@ import { Entity, Unique, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, M
 
 
 @Entity()
-@Unique(["email"])
 @Unique(["username"])
 @Unique(["sucursal_k"])
 export class Usuario {
@@ -40,11 +39,6 @@ export class Usuario {
     @Column({ default: false })
     login_normal: boolean;
 
-    @Column({ length: 60 })
-    email: string;
-
-    @Column({ length: 255 })
-    password_hash: string;
 
     @Column({ length: 45, default: 'cliente' })
     rol_ENUM: string;

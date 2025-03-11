@@ -12,6 +12,6 @@ async function bootstrap() {
     transform: true,  // Convierte los datos al tipo definido en el DTO
   }));
 
-  await app.listen(3001);
+  await app.listen(3000);
 }
 bootstrap();

@@ -8,13 +8,13 @@ import { CreateUsuarioDto } from 'src/usuarios/dto/create-usuario.dto';
 export class AuthController {
   constructor(private readonly authService: AuthService) { }
 
-  @Post('register')
-  async register(@Body() createUsuarioDto: CreateUsuarioDto) {
-    return this.authService.register(createUsuarioDto);
+  @Post('login')
+  async login(@Body('email') email: string, @Body('password') password: string) {
+    return this.authService.login(email, password);
   }
 
-  @Post('login')
-  async login(@Body() { email, password }: { email: string; password: string }) {
-    return this.authService.login(email, password);
+  @Post('hash-password')
+  async hashPassword(@Body('password') password: string) {
+    return this.authService.hashPassword(password);
   }
 }
