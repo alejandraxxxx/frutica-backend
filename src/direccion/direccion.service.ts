@@ -20,22 +20,21 @@ export class DireccionesService {
      * - Obtención de coordenadas (Google Maps)
      */
     async create(createDireccionDto: CreateDireccionDto) {
-      // Crear instancia de la entidad
       const nuevaDireccion = new Direccion();
       Object.assign(nuevaDireccion, createDireccionDto);
-      
+  
       // Obtener municipio y estado desde COPOMEX
       const { estado, municipio } = await this.obtenerMunicipioYEstado(createDireccionDto.cp);
       nuevaDireccion.estado = estado;
-      nuevaDireccion.ciudad = municipio;
+      nuevaDireccion.municipio = municipio; // 🔹 Antes era "ciudad", ahora es "municipio"
   
       // PASAR LOS DATOS COMPLETOS A GOOGLE MAPS
       const datosParaGeocodificar = {
           calle: nuevaDireccion.calle,
           colonia: nuevaDireccion.colonia,
           cp: nuevaDireccion.cp,
-          ciudad: nuevaDireccion.ciudad, // Ahora está garantizado que no es vacío
-          estado: nuevaDireccion.estado, // Ya está definido
+          municipio: nuevaDireccion.municipio, // 🔹 Aquí antes estaba ciudad
+          estado: nuevaDireccion.estado,
           pais: nuevaDireccion.pais,
       };
   
@@ -60,48 +59,43 @@ export class DireccionesService {
     }
 
     async update(id: number, updateDireccionDto: Partial<CreateDireccionDto>) {
-        // Primero buscar la dirección existente
-        const direccionExistente = await this.findOne(id);
-        
-        if (!direccionExistente) {
-            throw new NotFoundException(`Dirección con ID ${id} no encontrada`);
-        }
-        
-        // Actualizar los datos con el DTO
-        Object.assign(direccionExistente, updateDireccionDto);
-        
-        // Si se actualiza el código postal, actualizar municipio y estado
-        if (updateDireccionDto.cp) {
-            const { estado, municipio } = await this.obtenerMunicipioYEstado(updateDireccionDto.cp);
-            direccionExistente.estado = estado;
-            direccionExistente.ciudad = municipio;
-        }
-        
-        // Si se actualiza algún dato de ubicación, actualizar coordenadas
-        if (updateDireccionDto.calle || updateDireccionDto.colonia || 
-            updateDireccionDto.cp || updateDireccionDto.ciudad || 
-            updateDireccionDto.estado || updateDireccionDto.pais) {
-            
-            // Crear DTO con datos actualizados para obtener ubicación
-            const datosParaGeocodificar = {
-                calle: direccionExistente.calle,
-                colonia: direccionExistente.colonia,
-                cp: direccionExistente.cp,
-                ciudad: direccionExistente.ciudad,
-                estado: direccionExistente.estado,
-                pais: direccionExistente.pais,
-                ...updateDireccionDto
-            };
-            
-            const { latitud, longitud, maps_url } = await this.obtenerUbicacionDesdeGoogle(datosParaGeocodificar);
-            direccionExistente.latitud = latitud;
-            direccionExistente.longitud = longitud;
-            direccionExistente.maps_url = maps_url;
-        }
-        
-        return await this.direccionRepository.save(direccionExistente);
-    }
-
+      const direccionExistente = await this.findOne(id);
+      
+      if (!direccionExistente) {
+          throw new NotFoundException(`Dirección con ID ${id} no encontrada`);
+      }
+  
+      Object.assign(direccionExistente, updateDireccionDto);
+  
+      if (updateDireccionDto.cp) {
+          const { estado, municipio } = await this.obtenerMunicipioYEstado(updateDireccionDto.cp);
+          direccionExistente.estado = estado;
+          direccionExistente.municipio = municipio; // 🔹 Antes era "ciudad"
+      }
+  
+      if (updateDireccionDto.calle || updateDireccionDto.colonia || 
+          updateDireccionDto.cp || updateDireccionDto.municipio || 
+          updateDireccionDto.estado || updateDireccionDto.pais) {
+          
+          const datosParaGeocodificar = {
+              calle: direccionExistente.calle,
+              colonia: direccionExistente.colonia,
+              cp: direccionExistente.cp,
+              municipio: direccionExistente.municipio, // 🔹 Aquí antes estaba ciudad
+              estado: direccionExistente.estado,
+              pais: direccionExistente.pais,
+              ...updateDireccionDto
+          };
+  
+          const { latitud, longitud, maps_url } = await this.obtenerUbicacionDesdeGoogle(datosParaGeocodificar);
+          direccionExistente.latitud = latitud;
+          direccionExistente.longitud = longitud;
+          direccionExistente.maps_url = maps_url;
+      }
+      
+      return await this.direccionRepository.save(direccionExistente);
+  }
+  
     async remove(id: number) {
         const result = await this.direccionRepository.delete(id);
         if (result.affected === 0) throw new NotFoundException(`Dirección con ID ${id} no encontrada`);
@@ -149,21 +143,21 @@ export class DireccionesService {
     private async obtenerUbicacionDesdeGoogle(dto: Partial<CreateDireccionDto>) {
       const apiKey = this.configService.get<string>('GOOGLE_MAPS_API_KEY');
   
-      if (!dto.ciudad || !dto.estado) {
-          throw new Error('La dirección está incompleta: falta ciudad o estado.');
+      if (!dto.municipio || !dto.estado) {
+          throw new Error('La dirección está incompleta: falta municipio o estado.');
       }
   
       try {
-          console.log(`Consultando Google Maps con municipio y estado: ${dto.ciudad}, ${dto.estado}, ${dto.pais || 'México'}`);
+          console.log(`🔍 Consultando Google Maps con municipio y estado: ${dto.municipio}, ${dto.estado}, ${dto.pais || 'México'}`);
   
           const response = await axios.get(`https://maps.googleapis.com/maps/api/geocode/json`, {
               params: {
                   key: apiKey,
-                  components: `locality:${dto.ciudad}|administrative_area:${dto.estado}|country:MX`
+                  components: `locality:${dto.municipio}|administrative_area:${dto.estado}|country:MX`
               },
           });
   
-          console.log("Respuesta completa de Google Maps:", JSON.stringify(response.data, null, 2));
+          console.log("📌 Respuesta completa de Google Maps:", JSON.stringify(response.data, null, 2));
   
           if (!response.data.results || response.data.results.length === 0) {
               throw new Error('No se encontró la ubicación en Google Maps.');
@@ -176,10 +170,11 @@ export class DireccionesService {
               maps_url: `https://www.google.com/maps?q=${location.lat},${location.lng}`,
           };
       } catch (error) {
-          console.error("Error en Google Maps API:", error.response?.data || error.message);
+          console.error("❌ Error en Google Maps API:", error.response?.data || error.message);
           throw new Error('Error obteniendo la ubicación de Google Maps');
       }
   }
+  
   
   
 }

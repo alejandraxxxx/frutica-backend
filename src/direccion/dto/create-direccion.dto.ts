@@ -6,6 +6,11 @@ export class CreateDireccionDto {
     @MaxLength(1000)
     calle: string;
 
+    @IsOptional()
+    @IsString()
+    @MaxLength(50)
+    numero?: string;
+
     @IsNotEmpty()
     @IsString()
     @MaxLength(200)
@@ -39,7 +44,7 @@ export class CreateDireccionDto {
     @IsOptional()
     @IsString()
     @MaxLength(200)
-    ciudad?: string;  // Se autocompleta con API COPOMEX
+    municipio?: string;  // Se autocompleta con API COPOMEX
 
     @IsOptional()
     @IsString()

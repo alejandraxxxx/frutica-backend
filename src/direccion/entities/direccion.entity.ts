@@ -11,14 +11,11 @@ export class Direccion {
     @Column({ length: 1000 })
     calle: string;
 
+    @Column({ length: 50, nullable: true })
+    numero: string;
+
     @Column({ length: 200 })
     colonia: string;
-
-    @Column({ length: 200 })
-    ciudad: string;
-
-    @Column({ length: 200 })
-    estado: string;
 
     @Column({ length: 5 })
     cp: string;
@@ -26,29 +23,20 @@ export class Direccion {
     @Column({ length: 200 })
     pais: string;
 
-    @Column({ length: 50, nullable: true })
-    numExterior: string;
+    @Column({ length: 200 })
+    estado: string;
 
-    @Column({ length: 50, nullable: true })
-    numInterior: string;
+    @Column({ length: 200 })
+    ciudad: string;
+
+    @Column({ length: 10, nullable: true })
+    municipio: string;
 
     @Column({ length: 200 })
     referencia: string;
 
     @Column({ length: 50, nullable: true })
     localidad: string;
-
-    @Column({ length: 10, nullable: true })
-    localidad_k: string;
-
-    @Column({ length: 10, nullable: true })
-    colonia_k: string;
-
-    @Column({ length: 10, nullable: true })
-    municipio_k: string;
-
-    @Column({ length: 10, nullable: true })
-    estado_k: string;
 
     @Column({ type: "datetime" })
     fecha_creacion: Date;

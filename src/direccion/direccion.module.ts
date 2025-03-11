@@ -6,10 +6,10 @@ import { DireccionesController } from './direccion.controller';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Direccion]) // ✅ Asegurar que se registre aquí
+    TypeOrmModule.forFeature([Direccion]) // Asegurar que se registre aquí
   ],
   controllers: [DireccionesController],
   providers: [DireccionesService],
-  exports: [TypeOrmModule], // ✅ Exportar el módulo si se usa en otros lugares
+  exports: [TypeOrmModule], // Exportar el módulo si se usa en otros lugares
 })
 export class DireccionesModule {}
