@@ -1,34 +1,33 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
-import { DireccionService } from './direccion.service';
+import { DireccionesService } from './direccion.service';
 import { CreateDireccionDto } from './dto/create-direccion.dto';
-import { UpdateDireccionDto } from './dto/update-direccion.dto';
 
-@Controller('direccion')
-export class DireccionController {
-  constructor(private readonly direccionService: DireccionService) {}
+@Controller('direcciones')
+export class DireccionesController {
+    constructor(private readonly direccionesService: DireccionesService) {}
 
-  @Post()
-  create(@Body() createDireccionDto: CreateDireccionDto) {
-    return this.direccionService.create(createDireccionDto);
-  }
+    @Post()
+    async create(@Body() createDireccionDto: CreateDireccionDto) {
+        return await this.direccionesService.create(createDireccionDto);
+    }
 
-  @Get()
-  findAll() {
-    return this.direccionService.findAll();
-  }
+    @Get()
+    async findAll() {
+        return await this.direccionesService.findAll();
+    }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.direccionService.findOne(+id);
-  }
+    @Get(':id')
+    async findOne(@Param('id') id: string) {
+        return await this.direccionesService.findOne(+id);
+    }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateDireccionDto: UpdateDireccionDto) {
-    return this.direccionService.update(+id, updateDireccionDto);
-  }
+    @Patch(':id')
+    async update(@Param('id') id: string, @Body() updateDireccionDto: Partial<CreateDireccionDto>) {
+        return await this.direccionesService.update(+id, updateDireccionDto);
+    }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.direccionService.remove(+id);
-  }
+    @Delete(':id')
+    async remove(@Param('id') id: string) {
+        return await this.direccionesService.remove(+id);
+    }
 }

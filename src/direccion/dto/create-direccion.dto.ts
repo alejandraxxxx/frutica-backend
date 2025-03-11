@@ -1,26 +1,27 @@
-import { IsString, IsInt, IsOptional, IsDecimal, MaxLength } from 'class-validator';
+import { IsNotEmpty, IsString, IsOptional, IsInt, IsDecimal, MaxLength } from 'class-validator';
 
 export class CreateDireccionDto {
+    @IsNotEmpty()
     @IsString()
     @MaxLength(1000)
     calle: string;
 
+    @IsOptional()
+    @IsString()
+    @MaxLength(50)
+    numero?: string;
+
+    @IsNotEmpty()
     @IsString()
     @MaxLength(200)
     colonia: string;
 
-    @IsString()
-    @MaxLength(200)
-    ciudad: string;
-
-    @IsString()
-    @MaxLength(200)
-    estado: string;
-
+    @IsNotEmpty()
     @IsString()
     @MaxLength(5)
     cp: string;
 
+    @IsNotEmpty()
     @IsString()
     @MaxLength(200)
     pais: string;
@@ -35,35 +36,22 @@ export class CreateDireccionDto {
     @MaxLength(50)
     numInterior?: string;
 
+    @IsNotEmpty()
     @IsString()
     @MaxLength(200)
     referencia: string;
 
     @IsOptional()
     @IsString()
-    @MaxLength(50)
-    localidad?: string;
+    @MaxLength(200)
+    municipio?: string;  // Se autocompleta con API COPOMEX
 
     @IsOptional()
     @IsString()
-    @MaxLength(10)
-    localidad_k?: string;
+    @MaxLength(200)
+    estado?: string;  // Se autocompleta con API COPOMEX
 
-    @IsOptional()
-    @IsString()
-    @MaxLength(10)
-    colonia_k?: string;
-
-    @IsOptional()
-    @IsString()
-    @MaxLength(10)
-    municipio_k?: string;
-
-    @IsOptional()
-    @IsString()
-    @MaxLength(10)
-    estado_k?: string;
-
+   /* @IsNotEmpty()
     @IsInt()
     usuario_creacion: number;
 
@@ -71,23 +59,20 @@ export class CreateDireccionDto {
     @IsInt()
     usuario_actualizacion?: number;
 
+    @IsNotEmpty()
     @IsInt()
-    activo: number;
-
-    @IsString()
-    @MaxLength(100)
-    maps_url: string;
-
-    @IsDecimal()
-    latitud: number;
-
-    @IsDecimal()
-    longitud: number;
+    activo: number;*/
 
     @IsOptional()
-    @IsInt()
-    clienteClienteK?: number;
+    @IsString()
+    @MaxLength(100)
+    maps_url?: string;  // Se generará con Google Maps API
 
-    @IsInt()
-    usuarioUsuarioK: number;
+    @IsOptional()
+    @IsDecimal({ decimal_digits: '0,6' })
+    latitud?: number;  // Se generará con Google Maps API
+
+    @IsOptional()
+    @IsDecimal({ decimal_digits: '0,6' })
+    longitud?: number;  // Se generará con Google Maps API
 }
