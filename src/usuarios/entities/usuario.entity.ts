@@ -24,7 +24,7 @@ export class Usuario {
     apellido_materno: string;
 
     @Column({ length: 10 })
-    sexo: string;  
+    sexo: string;
 
     @Column({ length: 10, nullable: true })
     telefono: string;
@@ -37,7 +37,6 @@ export class Usuario {
 
     @Column({ default: false })
     login_normal: boolean;
-
 
     @Column({ length: 45, default: 'cliente' })
     rol_ENUM: string;
@@ -81,7 +80,6 @@ export class Usuario {
     @OneToMany(() => InventarioMovimiento, movimiento => movimiento.usuario)
     movimientosInventario: InventarioMovimiento[];
 
-    @OneToOne(() => Credencial, { cascade: true })
-    @JoinColumn()
-    credencial: Credencial;
+    @OneToMany(() => Credencial, credencial => credencial.usuario)
+    credenciales: Credencial[];
 }

@@ -10,7 +10,6 @@ export class Credencial {
     @Column({ length: 60, unique: true })
     email: string;
 
-
     @Column({ length: 255 })
     password_hash: string;
 
@@ -20,6 +19,6 @@ export class Credencial {
     @CreateDateColumn()
     fecha_creacion: Date;
 
-    @ManyToOne(() => Usuario, usuario => usuario.credencial)
+    @ManyToOne(() => Usuario, usuario => usuario.credenciales)
     usuario: Usuario;
 }
