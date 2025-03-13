@@ -43,6 +43,7 @@ import { NotificacionesModule } from './notificaciones/notificaciones.module';
 import { AuthModule } from './auth/auth.module';
 import { CredencialesModule } from './credenciales/credenciales.module';
 import { ConfigModule } from '@nestjs/config';
+import { CloudinaryModule } from './cloudinary/cloudinary.module';
 
 
 
@@ -57,14 +58,14 @@ import { ConfigModule } from '@nestjs/config';
       port: 3306, // Puerto predeterminado de MySQL
       username: 'root', // Usuario de la base de datos
       password: '', // Contraseña de MySQL (deja vacío si no tiene)
-      database: 'frutica-app1', // Nombre de la base de datos en phpMyAdmin
+      database: 'frutica-bd', // Nombre de la base de datos en phpMyAdmin
       entities: [Usuario, Empleado, Cliente, Categoria, Producto, Pedido, DetallePedido, Factura, FormaPago, Comentario, InventarioMovimiento,
         Direccion, Venta, Precio, EnvioDomicilio, DetalleFactura, Notificacion, Credencial ],
       synchronize: true, // ⚠️ Solo en desarrollo, en producción usa migraciones
     }),
     UsuariosModule, EmpleadosModule, ClientesModule, CategoriaModule, ProductosModule, PedidosModule, DetallePedidoModule,
     FacturaModule, FormaPagoModule, ComentarioModule, InventarioMovimientoModule, DireccionesModule, VentaModule,
-    PrecioModule, EnvioDomicilioModule, DetalleFacturaModule, NotificacionesModule, AuthModule, CredencialesModule, ],
+    PrecioModule, EnvioDomicilioModule, DetalleFacturaModule, NotificacionesModule, AuthModule, CredencialesModule, CloudinaryModule, ],
     
   controllers: [AppController],
   providers: [AppService],
