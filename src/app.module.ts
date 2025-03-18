@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { Usuario } from './usuarios/entities/usuario.entity';
-import { Empleado } from './empleados/entities/empleado.entity';
 import { Cliente } from './clientes/entities/cliente.entity';
 import { Categoria } from './categoria//entities/categoria.entity';
 import { Producto } from './productos/entities/productos.entity';
@@ -24,7 +23,6 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
 import { UsuariosModule } from './usuarios/usuarios.module';
-import { EmpleadosModule } from './empleados/empleados.module';
 import { ClientesModule } from './clientes/clientes.module';
 import { CategoriaModule } from './categoria/categoria.module';
 import { ProductosModule } from './productos/productos.module';
@@ -62,11 +60,11 @@ import { CloudinaryModule } from './cloudinary/cloudinary.module';
       username: 'root', // Usuario de la base de datos
       password: '', // Contraseña de MySQL (deja vacío si no tiene)
       database: 'frutica-app1', // Nombre de la base de datos en phpMyAdmin
-      entities: [Usuario, Empleado, Cliente, Categoria, Producto, Pedido, DetallePedido, Factura, FormaPago, Comentario, InventarioMovimiento,
+      entities: [Usuario, Cliente, Categoria, Producto, Pedido, DetallePedido, Factura, FormaPago, Comentario, InventarioMovimiento,
         Direccion, Venta, Precio,TipoEntrega , DetalleFactura, Notificacion, Credencial ],
       synchronize: true, // ⚠️ Solo en desarrollo, en producción usa migraciones
     }),
-    UsuariosModule, EmpleadosModule, ClientesModule, CategoriaModule, ProductosModule, PedidosModule, DetallePedidoModule,
+    UsuariosModule, ClientesModule, CategoriaModule, ProductosModule, PedidosModule, DetallePedidoModule,
     FacturaModule, FormaPagoModule, ComentarioModule, InventarioMovimientoModule, DireccionesModule, VentaModule, 
     PrecioModule, TipoEntregaModule, DetalleFacturaModule, NotificacionesModule, AuthModule, CredencialesModule, 
     TipoEntregaModule, CloudinaryModule ],
