@@ -12,7 +12,6 @@ export class Venta {
     @ManyToOne(() => Producto, producto => producto.ventas)
     producto: Producto;
 
-
     @ManyToOne(() => Usuario, usuario => usuario.ventas, { nullable: true })
     usuario: Usuario;
 

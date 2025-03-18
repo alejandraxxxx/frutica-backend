@@ -1,26 +1,58 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateCategoriaDto } from './dto/create-categoria.dto';
 import { UpdateCategoriaDto } from './dto/update-categoria.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Categoria } from './entities/categoria.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class CategoriaService {
-  create(createCategoriaDto: CreateCategoriaDto) {
-    return 'This action adds a new categoria';
+  constructor(
+    @InjectRepository(Categoria)
+    private categoriaRepo: Repository<Categoria>,
+  ) {}
+
+  /**
+   * 🛠 Crear una categoría
+   */
+  async create(createCategoriaDto: CreateCategoriaDto): Promise<Categoria> {
+    const categoria = this.categoriaRepo.create(createCategoriaDto);
+    return this.categoriaRepo.save(categoria);
   }
 
-  findAll() {
-    return `This action returns all categoria`;
+  /**
+   * 📦 Obtener todas las categorías activas
+   */
+  async findAll(): Promise<Categoria[]> {
+    return this.categoriaRepo.find({ where: { activo: true } });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} categoria`;
+  /**
+   * 🔍 Buscar una categoría por ID
+   */
+  async findOne(id: number): Promise<Categoria> {
+    const categoria = await this.categoriaRepo.findOne({ where: { categoria_k: id } });
+    if (!categoria) {
+      throw new NotFoundException('Categoría no encontrada');
+    }
+    return categoria;
   }
 
-  update(id: number, updateCategoriaDto: UpdateCategoriaDto) {
-    return `This action updates a #${id} categoria`;
+  /**
+   * 📝 Actualizar una categoría
+   */
+  async update(id: number, updateCategoriaDto: UpdateCategoriaDto): Promise<Categoria> {
+    const categoria = await this.findOne(id);
+    Object.assign(categoria, updateCategoriaDto);
+    return this.categoriaRepo.save(categoria);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} categoria`;
+  /**
+   * 🗑 Eliminar una categoría (Soft delete, cambia `activo` a false)
+   */
+  async remove(id: number): Promise<Categoria> {
+    const categoria = await this.findOne(id);
+    categoria.activo = false;
+    return this.categoriaRepo.save(categoria);
   }
 }
