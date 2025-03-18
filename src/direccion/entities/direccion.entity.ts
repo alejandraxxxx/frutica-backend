@@ -1,5 +1,5 @@
 import { Cliente } from "src/clientes/entities/cliente.entity";
-import { EnvioDomicilio } from "src/envio-domicilio/entities/envio-domicilio.entity";
+import { TipoEntrega } from "src/tipo-entrega/entities/tipo-entrega.entity";
 import { Usuario } from "src/usuarios/entities/usuario.entity";
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, ManyToMany, JoinTable } from "typeorm";
 
@@ -68,7 +68,7 @@ export class Direccion {
     @ManyToOne(() => Usuario, usuario => usuario.direcciones)
     usuario: Usuario;
 
-    @OneToMany(() => EnvioDomicilio, envio => envio.direccion)
-    envios: EnvioDomicilio[];
+    @OneToMany(() => TipoEntrega, envio => envio.direccion)
+    envios: TipoEntrega[];
    
 }

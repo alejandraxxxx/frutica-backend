@@ -1,26 +1,41 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateComentarioDto } from './dto/create-comentario.dto';
 import { UpdateComentarioDto } from './dto/update-comentario.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Comentario } from './entities/comentario.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class ComentarioService {
-  create(createComentarioDto: CreateComentarioDto) {
-    return 'This action adds a new comentario';
-  }
+  constructor(
+    @InjectRepository(Comentario)
+    private readonly comentarioRepository: Repository<Comentario>,
+) {}
 
-  findAll() {
-    return `This action returns all comentario`;
-  }
+async create(createComentarioDto: CreateComentarioDto): Promise<Comentario> {
+    const nuevoComentario = this.comentarioRepository.create(createComentarioDto);
+    return await this.comentarioRepository.save(nuevoComentario);
+}
 
-  findOne(id: number) {
-    return `This action returns a #${id} comentario`;
-  }
+async findAll(): Promise<Comentario[]> {
+    return await this.comentarioRepository.find();
+}
 
-  update(id: number, updateComentarioDto: UpdateComentarioDto) {
-    return `This action updates a #${id} comentario`;
-  }
+async findOne(id: number): Promise<Comentario> {
+    const comentario = await this.comentarioRepository.findOne({ where: { comentario_k: id } });
+    if (!comentario) {
+        throw new NotFoundException(`Comentario con ID ${id} no encontrado`);
+    }
+    return comentario;
+}
 
-  remove(id: number) {
-    return `This action removes a #${id} comentario`;
-  }
+async update(id: number, updateComentarioDto: UpdateComentarioDto): Promise<Comentario> {
+    await this.comentarioRepository.update(id, updateComentarioDto);
+    return this.findOne(id);
+}
+
+async remove(id: number): Promise<void> {
+    const comentario = await this.findOne(id);
+    await this.comentarioRepository.remove(comentario);
+}
 }

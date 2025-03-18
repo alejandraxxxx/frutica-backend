@@ -1,13 +1,13 @@
 import { Cliente } from "src/clientes/entities/cliente.entity";
 import { Comentario } from "src/comentario/entities/comentario.entity";
 import { Venta } from "src/venta/entities/venta.entity";
-import { EnvioDomicilio } from "src/envio-domicilio/entities/envio-domicilio.entity";
 import { FormaPago } from "src/forma-pago/entities/forma-pago.entity";
 import { Usuario } from "src/usuarios/entities/usuario.entity";
 import { Factura } from "src/factura/entities/factura.entity";
 import { DetallePedido } from "src/detalle_pedido/entities/detalle_pedido.entity";
 
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, ManyToMany, JoinTable } from "typeorm";
+import { TipoEntrega } from "src/tipo-entrega/entities/tipo-entrega.entity";
 
 @Entity()
 export class Pedido {
@@ -23,11 +23,11 @@ export class Pedido {
     @Column({ type: "decimal" })
     total: number;
 
-    @Column({ type: "enum", enum: ['domicilio', 'recoger_en_tienda'] })
-    tipo_entrega: string;
-
     @Column({ length: 20, default: 'pendiente' })
     estado: string;
+
+    @Column({ type: "datetime" })
+    fecha_hora_entregado: Date;
 
     @ManyToOne(() => FormaPago, formaPago => formaPago.pedidos)
     formaPago: FormaPago;
@@ -37,10 +37,10 @@ export class Pedido {
 
     @ManyToOne(() => Cliente, cliente => cliente.pedidos)
     cliente: Cliente;
-
-    @ManyToOne(() => EnvioDomicilio, envio => envio.pedidos, { nullable: true })
-    envioDomicilio: EnvioDomicilio;
-
+    
+      // Relación Many-to-One con TipoEntrega
+    @ManyToOne(() => TipoEntrega, (tipoEntrega) => tipoEntrega.pedidos, { eager: true })
+    tipoEntrega: TipoEntrega;
 
     @ManyToOne(() => Comentario, comentario => comentario.pedidos)
     comentario: Comentario;

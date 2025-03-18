@@ -15,7 +15,7 @@ import { InventarioMovimiento } from './inventario-movimiento/entities/inventari
 import { Direccion } from './direccion/entities/direccion.entity';
 import { Venta } from './venta/entities/venta.entity';
 import { Precio } from './precio/entities/precio.entity';
-import { EnvioDomicilio } from './envio-domicilio/entities/envio-domicilio.entity';
+
 import { DetalleFactura } from './detalle-factura/entities/detalle-factura.entity';
 import { Notificacion } from './notificaciones//entities/notificacion.entity';
 import { Credencial } from './credenciales/entities/credencial.entity';
@@ -37,12 +37,13 @@ import { InventarioMovimientoModule } from './inventario-movimiento/inventario-m
 import { DireccionesModule} from './direccion/direccion.module';
 import { VentaModule } from './venta/venta.module';
 import { PrecioModule } from './precio/precio.module';
-import { EnvioDomicilioModule } from './envio-domicilio/envio-domicilio.module';
 import { DetalleFacturaModule } from './detalle-factura/detalle-factura.module';
 import { NotificacionesModule } from './notificaciones/notificaciones.module';
 import { AuthModule } from './auth/auth.module';
 import { CredencialesModule } from './credenciales/credenciales.module';
 import { ConfigModule } from '@nestjs/config';
+import { TipoEntregaModule } from './tipo-entrega/tipo-entrega.module';
+import { TipoEntrega } from './tipo-entrega/entities/tipo-entrega.entity';
 
 
 
@@ -59,12 +60,12 @@ import { ConfigModule } from '@nestjs/config';
       password: '', // Contraseña de MySQL (deja vacío si no tiene)
       database: 'frutica-app1', // Nombre de la base de datos en phpMyAdmin
       entities: [Usuario, Empleado, Cliente, Categoria, Producto, Pedido, DetallePedido, Factura, FormaPago, Comentario, InventarioMovimiento,
-        Direccion, Venta, Precio, EnvioDomicilio, DetalleFactura, Notificacion, Credencial ],
+        Direccion, Venta, Precio,TipoEntrega , DetalleFactura, Notificacion, Credencial ],
       synchronize: true, // ⚠️ Solo en desarrollo, en producción usa migraciones
     }),
     UsuariosModule, EmpleadosModule, ClientesModule, CategoriaModule, ProductosModule, PedidosModule, DetallePedidoModule,
     FacturaModule, FormaPagoModule, ComentarioModule, InventarioMovimientoModule, DireccionesModule, VentaModule,
-    PrecioModule, EnvioDomicilioModule, DetalleFacturaModule, NotificacionesModule, AuthModule, CredencialesModule, ],
+    PrecioModule, TipoEntregaModule, DetalleFacturaModule, NotificacionesModule, AuthModule, CredencialesModule, TipoEntregaModule, ],
     
   controllers: [AppController],
   providers: [AppService],

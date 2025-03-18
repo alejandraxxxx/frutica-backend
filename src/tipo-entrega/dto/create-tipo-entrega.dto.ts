@@ -1,7 +1,8 @@
 import { IsString, IsInt, IsDecimal, IsOptional, IsDate, IsEnum } from 'class-validator';
 
-export class CreateEnvioDomicilioDto {
-    @IsString()
+
+export class CreateTipoEntregaDto {
+@IsString()
     repartidor: string;
 
     @IsDate()
@@ -18,4 +19,5 @@ export class CreateEnvioDomicilioDto {
 
     @IsInt()
     direccionDireccionK: number;
+
 }
