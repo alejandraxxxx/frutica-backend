@@ -28,15 +28,16 @@ export class CreateUsuarioDto {
     @IsEmail()
     correo_electronico: string;
 
-    @IsNotEmpty()
+    @IsOptional()
     @MinLength(6, { message: 'La contraseña debe tener al menos 6 caracteres' })
     @Matches(/(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])/, {
         message: 'La contraseña debe incluir al menos una mayúscula, una minúscula y un número',
     })
-    contrasena: string;
+    contrasena?: string;
 
+    @IsOptional()
     @IsNotEmpty()
-    contrasenaRepetida: string;
+    contrasenaRepetida?: string;
 
     @IsOptional()
     @IsBoolean()
@@ -50,13 +51,16 @@ export class CreateUsuarioDto {
     @IsBoolean()
     login_normal?: boolean;
 
+    @IsOptional()
     @IsString()
     @MaxLength(45)
-    rol_ENUM: string;
+    rol_ENUM?: string;
 
+
+    @IsOptional()
     @IsString()
     @MaxLength(45)
-    estado_ENUM: string;
+    estado_ENUM?: string;
 
 
     @IsOptional()

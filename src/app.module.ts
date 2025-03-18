@@ -58,7 +58,7 @@ import { CloudinaryModule } from './cloudinary/cloudinary.module';
       port: 3306, // Puerto predeterminado de MySQL
       username: 'root', // Usuario de la base de datos
       password: '', // Contraseña de MySQL (deja vacío si no tiene)
-      database: 'frutica-bd', // Nombre de la base de datos en phpMyAdmin
+      database: 'frutica-app1', // Nombre de la base de datos en phpMyAdmin
       entities: [Usuario, Empleado, Cliente, Categoria, Producto, Pedido, DetallePedido, Factura, FormaPago, Comentario, InventarioMovimiento,
         Direccion, Venta, Precio, EnvioDomicilio, DetalleFactura, Notificacion, Credencial ],
       synchronize: true, // ⚠️ Solo en desarrollo, en producción usa migraciones

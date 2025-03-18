@@ -9,50 +9,49 @@ import { Repository } from 'typeorm';
 export class CategoriaService {
   constructor(
     @InjectRepository(Categoria)
-    private categoriaRepo: Repository<Categoria>,
+    private readonly  categoriaRepo: Repository<Categoria>,
   ) {}
 
   /**
    * 🛠 Crear una categoría
    */
   async create(createCategoriaDto: CreateCategoriaDto): Promise<Categoria> {
-    const categoria = this.categoriaRepo.create(createCategoriaDto);
-    return this.categoriaRepo.save(categoria);
-  }
+    const nuevaCategoria = this.categoriaRepo.create(createCategoriaDto);
+    return await this.categoriaRepo.save(nuevaCategoria);
+}
 
   /**
-   * 📦 Obtener todas las categorías activas
+   *  Obtener todas las categorías activas
    */
   async findAll(): Promise<Categoria[]> {
-    return this.categoriaRepo.find({ where: { activo: true } });
-  }
-
+    return await this.categoriaRepo.find({ relations: ['productos'] });
+}
   /**
-   * 🔍 Buscar una categoría por ID
+   *  Buscar una categoría por ID
    */
   async findOne(id: number): Promise<Categoria> {
-    const categoria = await this.categoriaRepo.findOne({ where: { categoria_k: id } });
+    const categoria = await this.categoriaRepo.findOne({ where: { categoria_k: id }, relations: ['productos'] });
     if (!categoria) {
-      throw new NotFoundException('Categoría no encontrada');
+        throw new NotFoundException(`Categoría con ID ${id} no encontrada`);
     }
     return categoria;
-  }
+}
 
   /**
-   * 📝 Actualizar una categoría
+   * Actualizar una categoría
    */
   async update(id: number, updateCategoriaDto: UpdateCategoriaDto): Promise<Categoria> {
     const categoria = await this.findOne(id);
     Object.assign(categoria, updateCategoriaDto);
-    return this.categoriaRepo.save(categoria);
-  }
+    return await this.categoriaRepo.save(categoria);
+}
 
   /**
-   * 🗑 Eliminar una categoría (Soft delete, cambia `activo` a false)
+   * Eliminar una categoría (Soft delete, cambia `activo` a false)
    */
-  async remove(id: number): Promise<Categoria> {
+  async remove(id: number): Promise<void> {
     const categoria = await this.findOne(id);
-    categoria.activo = false;
-    return this.categoriaRepo.save(categoria);
-  }
+    await this.categoriaRepo.remove(categoria);
+}
+
 }
