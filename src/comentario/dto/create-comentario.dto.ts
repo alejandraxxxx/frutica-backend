@@ -43,9 +43,6 @@ export class CreateComentarioDto {
     @IsOptional()
     timestamp?: Date;
 
-    @IsBoolean()
-    activo: boolean;
-
     @IsOptional()
     @IsInt()
     comentarioPadreComentarioK?: number;

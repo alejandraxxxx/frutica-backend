@@ -40,8 +40,6 @@ export class Comentario {
     @Column({ type: "timestamp", default: () => "CURRENT_TIMESTAMP" })
     timestamp: Date;
 
-    @Column({  type: 'boolean' })
-    activo: boolean;
 
     @ManyToOne(() => Usuario, usuario => usuario.clientes)
     usuario: Usuario;

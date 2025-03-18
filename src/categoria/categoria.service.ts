@@ -7,7 +7,6 @@ import { Repository } from 'typeorm';
 
 @Injectable()
 export class CategoriaService {
-  
   constructor(
     @InjectRepository(Categoria)
     private readonly  categoriaRepo: Repository<Categoria>,
@@ -54,6 +53,5 @@ export class CategoriaService {
     const categoria = await this.findOne(id);
     await this.categoriaRepo.remove(categoria);
 }
-
 
 }

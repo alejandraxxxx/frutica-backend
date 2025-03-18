@@ -42,8 +42,12 @@ import { NotificacionesModule } from './notificaciones/notificaciones.module';
 import { AuthModule } from './auth/auth.module';
 import { CredencialesModule } from './credenciales/credenciales.module';
 import { ConfigModule } from '@nestjs/config';
+<<<<<<< HEAD
 import { TipoEntregaModule } from './tipo-entrega/tipo-entrega.module';
 import { TipoEntrega } from './tipo-entrega/entities/tipo-entrega.entity';
+=======
+import { CloudinaryModule } from './cloudinary/cloudinary.module';
+>>>>>>> cb2937421e6e2b5ebaa5558fa76ba166047afd12
 
 
 
@@ -65,7 +69,11 @@ import { TipoEntrega } from './tipo-entrega/entities/tipo-entrega.entity';
     }),
     UsuariosModule, EmpleadosModule, ClientesModule, CategoriaModule, ProductosModule, PedidosModule, DetallePedidoModule,
     FacturaModule, FormaPagoModule, ComentarioModule, InventarioMovimientoModule, DireccionesModule, VentaModule,
+<<<<<<< HEAD
     PrecioModule, TipoEntregaModule, DetalleFacturaModule, NotificacionesModule, AuthModule, CredencialesModule, TipoEntregaModule, ],
+=======
+    PrecioModule, EnvioDomicilioModule, DetalleFacturaModule, NotificacionesModule, AuthModule, CredencialesModule, CloudinaryModule, ],
+>>>>>>> cb2937421e6e2b5ebaa5558fa76ba166047afd12
     
   controllers: [AppController],
   providers: [AppService],

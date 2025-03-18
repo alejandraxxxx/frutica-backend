@@ -18,10 +18,12 @@ export class ClientesService {
     return await this.clienteRepository.save(nuevoCliente);
   }
 
-  // Obtener todos los clientes
+
+  // 🔹 Obtener todos los clientes
   async findAll(): Promise<Cliente[]> {
     return await this.clienteRepository.find();
   }
+
 
   // Obtener un cliente por ID
   async findOne(id: number): Promise<Cliente> {
@@ -32,12 +34,14 @@ export class ClientesService {
     return cliente;
   }
 
+
   // Actualizar un cliente por ID
   async update(id: number, updateClienteDto: UpdateClienteDto): Promise<Cliente> {
     const cliente = await this.findOne(id);
     Object.assign(cliente, updateClienteDto);
     return await this.clienteRepository.save(cliente);
   }
+
 
   // Eliminar un cliente por ID
   async remove(id: number): Promise<string> {

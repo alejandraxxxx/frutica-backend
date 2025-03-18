@@ -7,28 +7,43 @@ import { UpdateCategoriaDto } from './dto/update-categoria.dto';
 export class CategoriaController {
   constructor(private readonly categoriaService: CategoriaService) {}
 
+  /**
+   * 🛠 Crear una nueva categoría
+   */
   @Post()
-  create(@Body() createCategoriaDto: CreateCategoriaDto) {
+  async create(@Body() createCategoriaDto: CreateCategoriaDto) {
     return this.categoriaService.create(createCategoriaDto);
   }
 
+  /**
+   * 📦 Obtener todas las categorías activas
+   */
   @Get()
-  findAll() {
+  async findAll() {
     return this.categoriaService.findAll();
   }
 
+  /**
+   * 🔍 Obtener una categoría por ID
+   */
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  async findOne(@Param('id') id: string) {
     return this.categoriaService.findOne(+id);
   }
 
+  /**
+   * 📝 Actualizar una categoría
+   */
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCategoriaDto: UpdateCategoriaDto) {
+  async update(@Param('id') id: string, @Body() updateCategoriaDto: UpdateCategoriaDto) {
     return this.categoriaService.update(+id, updateCategoriaDto);
   }
 
+  /**
+   * 🗑 Eliminar una categoría (Soft delete)
+   */
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  async remove(@Param('id') id: string) {
     return this.categoriaService.remove(+id);
   }
 }
