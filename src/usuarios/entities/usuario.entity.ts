@@ -83,3 +83,5 @@ export class Usuario {
     @OneToMany(() => Credencial, credencial => credencial.usuario)
     credenciales: Credencial[];
 }
+
+

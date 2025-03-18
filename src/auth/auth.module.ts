@@ -8,13 +8,13 @@ import { Credencial } from 'src/credenciales/entities/credencial.entity';
 import { CredencialesModule } from 'src/credenciales/credenciales.module';
 import { UsuariosModule } from 'src/usuarios/usuarios.module';
 
-
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Credencial]),
-    CredencialesModule, UsuariosModule,
+    TypeOrmModule.forFeature([Usuario, Credencial]), // Agregar las entidades, no los repositorios
+    CredencialesModule,
+    UsuariosModule, 
     JwtModule.register({
-      secret: process.env.JWT_SECRET || 'defaultSecret',// Cambiar por una variable de entorno en producción
+      secret: process.env.JWT_SECRET || 'defaultSecret', // Cambiar por una variable de entorno en producción
       signOptions: { expiresIn: '1h' },
     }),
   ],
