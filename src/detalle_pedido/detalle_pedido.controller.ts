@@ -3,7 +3,7 @@ import { DetallePedidoService } from './detalle_pedido.service';
 import { CreateDetallePedidoDto } from './dto/create-detalle_pedido.dto';
 import { UpdateDetallePedidoDto } from './dto/update-detalle_pedido.dto';
 
-@Controller('detalle-pedido')
+@Controller('detallepedido')
 export class DetallePedidoController {
   constructor(private readonly detallePedidoService: DetallePedidoService) {}
 
