@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-
 import { Usuario } from './usuarios/entities/usuario.entity';
 import { Cliente } from './clientes/entities/cliente.entity';
 import { Categoria } from './categoria//entities/categoria.entity';
@@ -14,14 +13,11 @@ import { InventarioMovimiento } from './inventario-movimiento/entities/inventari
 import { Direccion } from './direccion/entities/direccion.entity';
 import { Venta } from './venta/entities/venta.entity';
 import { Precio } from './precio/entities/precio.entity';
-
 import { DetalleFactura } from './detalle-factura/entities/detalle-factura.entity';
 import { Notificacion } from './notificaciones//entities/notificacion.entity';
 import { Credencial } from './credenciales/entities/credencial.entity';
-
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-
 import { UsuariosModule } from './usuarios/usuarios.module';
 import { ClientesModule } from './clientes/clientes.module';
 import { CategoriaModule } from './categoria/categoria.module';
@@ -42,7 +38,6 @@ import { CredencialesModule } from './credenciales/credenciales.module';
 import { ConfigModule } from '@nestjs/config';
 import { TipoEntregaModule } from './tipo-entrega/tipo-entrega.module';
 import { TipoEntrega } from './tipo-entrega/entities/tipo-entrega.entity';
-
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
 
 
