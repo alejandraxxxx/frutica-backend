@@ -1,9 +1,18 @@
-import { IsString, IsInt, IsDecimal, IsOptional, IsDate, IsEnum } from 'class-validator';
-
+import { IsEnum, IsNumber, IsOptional, IsString, MaxLength, IsDate } from 'class-validator';
 
 export class CreateTipoEntregaDto {
-@IsString()
-    repartidor: string;
+    @IsString()
+    @MaxLength(20)
+    metodo_entrega: string;
+
+    @IsOptional()
+    @IsNumber()
+    direccionId?: number;
+
+    @IsOptional()
+    @IsString()
+    @MaxLength(100)
+    repartidor?: string;
 
     @IsDate()
     fecha_envio: Date;
@@ -11,13 +20,13 @@ export class CreateTipoEntregaDto {
     @IsDate()
     fecha_estimada_entrega: Date;
 
-    @IsDecimal()
+    @IsString()
+    hora_estimada_entrega: string;
+
+    @IsNumber()
     costo_envio: number;
 
     @IsEnum(['pendiente', 'en camino', 'entregado', 'cancelado'])
     estado: string;
-
-    @IsInt()
-    direccionDireccionK: number;
-
 }
+

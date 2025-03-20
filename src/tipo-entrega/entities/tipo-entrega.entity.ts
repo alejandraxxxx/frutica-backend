@@ -32,8 +32,6 @@ export class TipoEntrega {@PrimaryGeneratedColumn()
 
     @Column({ type: "enum", enum: ['pendiente', 'en camino', 'entregado', 'cancelado'], default: 'pendiente' })
     estado: string;
+  
 
-    // Relación con la tabla de pedidos
-  @OneToMany(() => Pedido, (pedido) => pedido.tipoEntrega)
-  pedidos: Pedido[];
 }
