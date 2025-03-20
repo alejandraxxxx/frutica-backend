@@ -3,7 +3,7 @@ import { InventarioMovimientoService } from './inventario-movimiento.service';
 import { CreateInventarioMovimientoDto } from './dto/create-inventario-movimiento.dto';
 import { UpdateInventarioMovimientoDto } from './dto/update-inventario-movimiento.dto';
 
-@Controller('inventario-movimiento')
+@Controller('inventario-mov')
 export class InventarioMovimientoController {
   constructor(private readonly inventarioMovimientoService: InventarioMovimientoService) {}
 

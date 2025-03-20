@@ -1,21 +1,20 @@
-import { IsString, IsEnum, IsInt, IsOptional, MaxLength } from 'class-validator';
+import { IsEnum, IsInt, IsPositive, IsString, MaxLength } from 'class-validator';
 
 export class CreateInventarioMovimientoDto {
+    @IsInt()
+    productoId: number;
+
     @IsEnum(['entrada', 'salida'])
-    tipo: 'entrada' | 'salida';
+    tipo: string;
 
     @IsInt()
+    @IsPositive()
     cantidad: number;
 
     @IsString()
     @MaxLength(100)
     descripcion: string;
 
-    @IsOptional()
     @IsInt()
-    productoProductoK?: number;
-
-    @IsOptional()
-    @IsInt()
-    usuarioUsuarioK?: number;
+    usuarioId: number;
 }

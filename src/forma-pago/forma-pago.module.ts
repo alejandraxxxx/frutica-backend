@@ -8,6 +8,6 @@ import { FormaPago } from './entities/forma-pago.entity';
   controllers: [FormaPagoController],
   providers: [FormaPagoService],
   imports: [TypeOrmModule.forFeature([FormaPago])],
-      exports: [TypeOrmModule]
+  exports: [TypeOrmModule]
 })
 export class FormaPagoModule {}
