@@ -5,7 +5,8 @@ import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "ty
 
 
 @Entity()
-export class TipoEntrega {@PrimaryGeneratedColumn()
+export class TipoEntrega {
+    @PrimaryGeneratedColumn()
     envio_k: number;
 
     @Column({ length: 20 })
@@ -32,6 +33,8 @@ export class TipoEntrega {@PrimaryGeneratedColumn()
 
     @Column({ type: "enum", enum: ['pendiente', 'en camino', 'entregado', 'cancelado'], default: 'pendiente' })
     estado: string;
-  
+    
+    @OneToMany(() => Pedido, pedido => pedido.tipoEntrega)
+    pedidos: Pedido[];
 
 }
