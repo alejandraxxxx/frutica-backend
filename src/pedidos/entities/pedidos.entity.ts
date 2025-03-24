@@ -8,6 +8,7 @@ import { Factura } from "src/factura/entities/factura.entity";
 import { DetallePedido } from "src/detalle_pedido/entities/detalle_pedido.entity";
 
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, ManyToMany, JoinTable } from "typeorm";
+import { Pago } from "src/pagos/entities/pago.entity";
 
 @Entity()
 export class Pedido {
@@ -21,22 +22,22 @@ export class Pedido {
     fecha_pedido: Date;
 
     @Column({ type: "decimal" })
+    subtotal: number; // Se agregó para separar impuestos y total final
+
+    @Column({ type: "decimal" })
     total: number;
 
     @Column({ type: "enum", enum: ['domicilio', 'recoger_en_tienda'] })
     tipo_entrega: string;
 
-    @Column({ length: 20, default: 'pendiente' })
+    @Column({ type: "enum", enum: ['pendiente', 'en preparación', 'enviado', 'entregado', 'cancelado'] })
     estado: string;
+
+    @Column({ type: "enum", enum: ['pendiente', 'pagado', 'cancelado'] })
+    estado_pago: string; // Se agregó para manejar el pago antes de generar la venta
 
     @ManyToOne(() => FormaPago, formaPago => formaPago.pedidos)
     formaPago: FormaPago;
-
-    @Column({ length: 15, default: "aplicacion" })
-    registrado_desde: string;
-
-    @ManyToOne(() => Cliente, cliente => cliente.pedidos)
-    cliente: Cliente;
 
     @ManyToOne(() => EnvioDomicilio, envio => envio.pedidos, { nullable: true })
     envioDomicilio: EnvioDomicilio;
@@ -51,7 +52,6 @@ export class Pedido {
     @OneToMany(() => DetallePedido, detalle => detalle.pedido)
     detalles: DetallePedido[];
 
-    @OneToMany(() => Venta, venta => venta.pedido)
-    ventas: Venta[];
-
+    @OneToMany(() => Pago, pago => pago.pedido)
+    pagos: Pago[];
 }

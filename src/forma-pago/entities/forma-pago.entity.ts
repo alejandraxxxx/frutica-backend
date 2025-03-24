@@ -1,4 +1,5 @@
 import { Factura } from "src/factura/entities/factura.entity";
+import { Pago } from "src/pagos/entities/pago.entity";
 import { Pedido } from "src/pedidos/entities/pedidos.entity";
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, ManyToMany, JoinTable } from "typeorm";
 
@@ -27,4 +28,7 @@ export class FormaPago {
 
     @OneToMany(() => Pedido, pedido => pedido.formaPago)
     pedidos: Pedido[];
+
+    @OneToMany(() => Pago, pago => pago.formaPago)
+    pagos: Pago[]; // Relación con la tabla Pago
 }

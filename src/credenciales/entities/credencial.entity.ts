@@ -2,14 +2,13 @@ import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, Un
 import { Usuario } from 'src/usuarios/entities/usuario.entity';
 
 @Entity()
-@Unique(["email"])
+//@Unique(["email"])
 export class Credencial {
     @PrimaryGeneratedColumn()
     credential_k: number;
 
     @Column({ length: 60, unique: true })
     email: string;
-
 
     @Column({ length: 255 })
     password_hash: string;

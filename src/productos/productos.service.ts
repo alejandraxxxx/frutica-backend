@@ -25,59 +25,72 @@ export class ProductosService {
   ) {}
 
   /**
-   * 🛠 Crear un producto y subir imagen a Cloudinary
+   * Crear un producto y subir imagen a Cloudinary
    */
-  async create(createProductoDto: CreateProductoDto, file?: Express.Multer.File): Promise<Producto> {
-    const { categoriaCategoriaK, unidad_venta, peso_estimado, usa_tamano, tamano, ...rest } = createProductoDto;
-
+  async create(
+    createProductoDto: CreateProductoDto,
+    files?: Express.Multer.File[],
+  ): Promise<Producto> {
+    const {
+      categoriaCategoriaK,
+      unidad_venta,
+      peso_estimado,
+      usa_tamano,
+      tamano,
+      ...rest
+    } = createProductoDto;
+  
+    // Validación de categoría
     let categoria = null;
     if (categoriaCategoriaK) {
-        categoria = await this.categoriaRepo.findOne({ where: { categoria_k: categoriaCategoriaK } });
-        if (!categoria) {
-            throw new NotFoundException('Categoría no encontrada');
-        }
+      categoria = await this.categoriaRepo.findOne({
+        where: { categoria_k: categoriaCategoriaK },
+      });
+      if (!categoria) throw new NotFoundException('Categoría no encontrada');
     }
-
-    let imageUrl = null;
-    if (file) {
-        const uploadResult = await this.cloudinaryService.uploadImage(file);
-        imageUrl = uploadResult.secure_url;
+  
+    //  Validación de límite de imágenes
+    if (files && files.length > 10) {
+      throw new BadRequestException('Solo se permiten hasta 10 imágenes por producto');
     }
-
+  
+    //  Subir imágenes a Cloudinary
+    let imageUrls: string[] = [];
+    if (files && files.length > 0) {
+      const uploads = await this.cloudinaryService.uploadImages(files, 'productos');
+      imageUrls = uploads.map((img) => img.secure_url);
+    }
+  
+    //  Cálculo del peso
     let pesoFinal = null;
     let pesoEstimado = null;
-
     if (usa_tamano) {
-        if (!tamano) {
-            throw new BadRequestException('Debe seleccionar un tamaño (Chico, Mediano, Grande).');
-        }
-
-        const pesosEstimados = {
-            "Chico": 3000,
-            "Mediano": 5000,
-            "Grande": 8000
-        };
-
-        pesoEstimado = pesosEstimados[tamano];
+      if (!tamano) {
+        throw new BadRequestException('Debe seleccionar un tamaño (Chico, Mediano, Grande).');
+      }
+      const pesosEstimados = { Chico: 3000, Mediano: 5000, Grande: 8000 };
+      pesoEstimado = pesosEstimados[tamano];
     } else {
-        pesoFinal = unidad_venta === "kg" ? (peso_estimado ?? 0) * 1000 : peso_estimado;
+      pesoFinal = unidad_venta === 'kg' ? (peso_estimado ?? 0) * 1000 : peso_estimado;
     }
-
+  
     const producto = this.productoRepo.create({
         ...rest,
-        foto: imageUrl,
+        foto: imageUrls, // arreglo de strings
         categoria,
         usa_tamano,
         tamano: usa_tamano ? tamano : null,
         peso_total: usa_tamano ? null : pesoFinal,
         peso_estimado: usa_tamano ? pesoEstimado : null,
-    });
-
-    return this.productoRepo.save(producto);
-}
+      });
+      
+      return this.productoRepo.save(producto); // 
+      
+  }
+  
 
   /**
-   * 📋 Obtener todos los productos disponibles
+   * Obtener todos los productos disponibles
    */
   async findAll() {
       try {
@@ -90,7 +103,7 @@ export class ProductosService {
   }
 
   /**
-   * 🔍 Buscar un producto por ID
+   * Buscar un producto por ID
    */
   async findOne(id: number) {
       const producto = await this.productoRepo.findOne({
@@ -104,7 +117,7 @@ export class ProductosService {
 
 
   /**
-   * ✏️ Actualizar datos del producto
+   * Actualizar datos del producto
    */
   async update(id: number, updateProductoDto: UpdateProductoDto): Promise<Producto> {
       const producto = await this.findOne(id);
@@ -141,7 +154,7 @@ export class ProductosService {
   }
 
   /**
-   * 🔎 Buscar productos por nombre
+   * Buscar productos por nombre
    */
   async buscar(termino: string) {
       return this.productoRepo.find({
@@ -152,18 +165,20 @@ export class ProductosService {
   async updateImage(id: number, file: Express.Multer.File): Promise<Producto> {
     const producto = await this.findOne(id);
     if (!producto) {
-        throw new NotFoundException('Producto no encontrado');
+      throw new NotFoundException('Producto no encontrado');
     }
-
+  
     if (!file) {
-        throw new BadRequestException('No se recibió un archivo');
+      throw new BadRequestException('No se recibió un archivo');
     }
-
-    const uploadResult = await this.cloudinaryService.uploadImage(file);
-    const imageUrl = uploadResult.secure_url; // Extraemos solo la URL
-
-    producto.foto = imageUrl; // Guardamos la nueva URL
-
-    return this.productoRepo.save(producto); // Guardamos el producto actualizado
-}
+  
+    const uploadResult = await this.cloudinaryService.uploadImage(file, 'productos');
+    const imageUrl = uploadResult.secure_url;
+  
+ 
+    producto.foto = [imageUrl]; 
+  
+    return this.productoRepo.save(producto);
+  }
+  
 }

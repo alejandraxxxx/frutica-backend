@@ -63,11 +63,6 @@ export class CreateProductoDto {
     @IsOptional()
     @IsString()
     @MaxLength(45)
-    color?: string;
-
-    @IsOptional()
-    @IsString()
-    @MaxLength(45)
     proveedor: string;
 
     @IsOptional()

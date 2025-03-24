@@ -31,4 +31,9 @@ export class FormaPagoController {
   remove(@Param('id') id: string) {
     return this.formaPagoService.remove(+id);
   }
+  @Get('activos')
+    async getActivePayments() {
+    return await this.formaPagoService.getActivePaymentMethods();
+    }
+
 }
