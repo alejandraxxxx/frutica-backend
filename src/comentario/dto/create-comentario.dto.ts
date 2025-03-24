@@ -1,4 +1,4 @@
-import { IsInt, IsOptional, IsString, MaxLength } from 'class-validator';
+import { IsBoolean, IsInt, IsOptional, IsString, MaxLength } from 'class-validator';
 
 export class CreateComentarioDto {
     @IsString()
@@ -29,12 +29,12 @@ export class CreateComentarioDto {
     @MaxLength(100)
     web?: string;
 
-    @IsInt()
-    estatus: number;
+    @IsBoolean()
+    estatus: boolean;
 
     @IsOptional()
-    @IsInt()
-    tiene_respuestas?: number;
+    @IsBoolean() 
+    tiene_respuestas?: boolean;
 
     @IsOptional()
     @IsInt()
@@ -42,9 +42,6 @@ export class CreateComentarioDto {
 
     @IsOptional()
     timestamp?: Date;
-
-    @IsInt()
-    activo: number;
 
     @IsOptional()
     @IsInt()

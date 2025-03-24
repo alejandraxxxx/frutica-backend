@@ -1,11 +1,11 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
-import { NotificacionesService } from './notificaciones.service';
+import { NotificacionService } from './notificaciones.service';
 import { CreateNotificacioneDto } from './dto/create-notificacione.dto';
 import { UpdateNotificacioneDto } from './dto/update-notificacione.dto';
 
 @Controller('notificaciones')
 export class NotificacionesController {
-  constructor(private readonly notificacionesService: NotificacionesService) {}
+  constructor(private readonly notificacionesService: NotificacionService) {}
 
   @Post()
   create(@Body() createNotificacioneDto: CreateNotificacioneDto) {

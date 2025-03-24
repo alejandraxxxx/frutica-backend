@@ -68,7 +68,7 @@ export class CreateClienteDto {
 
     @IsOptional()
     @IsString()
-    foto?: string;  // Base64 o URL de la imagen
+    foto?: Buffer;  // Base64 o URL de la imagen
 
     @IsInt()
     usuario_creacion: number;

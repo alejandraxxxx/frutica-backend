@@ -3,9 +3,9 @@ import { DetalleFacturaService } from './detalle-factura.service';
 import { CreateDetalleFacturaDto } from './dto/create-detalle-factura.dto';
 import { UpdateDetalleFacturaDto } from './dto/update-detalle-factura.dto';
 
-@Controller('detalle-factura')
+@Controller('detalle-fact')
 export class DetalleFacturaController {
-  constructor(private readonly detalleFacturaService: DetalleFacturaService) {}
+  constructor(private readonly detalleFacturaService: DetalleFacturaService) { }
 
   @Post()
   create(@Body() createDetalleFacturaDto: CreateDetalleFacturaDto) {

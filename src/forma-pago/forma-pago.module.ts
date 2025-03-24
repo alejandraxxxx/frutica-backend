@@ -7,7 +7,7 @@ import { FormaPago } from './entities/forma-pago.entity';
 @Module({
   controllers: [FormaPagoController],
   providers: [FormaPagoService],
-  imports: [TypeOrmModule.forFeature([ FormaPago])], // Registra las entidades
-  
+  imports: [TypeOrmModule.forFeature([FormaPago])],
+  exports: [TypeOrmModule]
 })
 export class FormaPagoModule {}

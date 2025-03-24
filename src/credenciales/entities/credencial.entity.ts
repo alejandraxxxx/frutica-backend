@@ -19,6 +19,6 @@ export class Credencial {
     @CreateDateColumn()
     fecha_creacion: Date;
 
-    @ManyToOne(() => Usuario, usuario => usuario.credencial)
+    @ManyToOne(() => Usuario, usuario => usuario.credenciales)
     usuario: Usuario;
 }

@@ -12,5 +12,6 @@ import { Pago } from 'src/pagos/entities/pago.entity';
   providers: [UsuariosService],
   imports: [TypeOrmModule.forFeature([Usuario, Credencial, Carrito, Pago])],
   exports: [UsuariosService],
+
 })
-export class UsuariosModule {}
+export class UsuariosModule {}

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateFormaPagoDto } from './dto/create-forma-pago.dto';
 import { UpdateFormaPagoDto } from './dto/update-forma-pago.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -7,6 +7,7 @@ import { Repository } from 'typeorm';
 
 @Injectable()
 export class FormaPagoService {
+
 
   constructor(
     @InjectRepository(FormaPago)
@@ -18,23 +19,39 @@ export class FormaPagoService {
       return await this.formaPagoRepository.save(nuevaForma);
     }
 
-  findAll() {
-    return `This action returns all formaPago`;
-  }
 
-  findOne(id: number) {
-    return `This action returns a #${id} formaPago`;
-  }
+    async create(createFormaPagoDto: CreateFormaPagoDto): Promise<FormaPago> {
+        const nuevaFormaPago = this.formaPagoRepository.create(createFormaPagoDto);
+        return await this.formaPagoRepository.save(nuevaFormaPago);
+    }
 
-  update(id: number, updateFormaPagoDto: UpdateFormaPagoDto) {
-    return `This action updates a #${id} formaPago`;
-  }
+    async findAll(): Promise<FormaPago[]> {
+        return await this.formaPagoRepository.find();
+    }
 
-  remove(id: number) {
-    return `This action removes a #${id} formaPago`;
-  }
+    async findOne(id: number): Promise<FormaPago> {
+        const formaPago = await this.formaPagoRepository.findOne({ where: { forma_k: id } });
+        if (!formaPago) {
+            throw new NotFoundException(`Forma de Pago con ID ${id} no encontrada`);
+        }
+        return formaPago;
+    }
+
 
   async getActivePaymentMethods() {
     return await this.formaPagoRepository.find({ where: { activo: true } });
 }
 }
+
+    async update(id: number, updateFormaPagoDto: UpdateFormaPagoDto): Promise<FormaPago> {
+        const formaPago = await this.findOne(id);
+        Object.assign(formaPago, updateFormaPagoDto);
+        return await this.formaPagoRepository.save(formaPago);
+    }
+
+    async remove(id: number): Promise<void> {
+        const formaPago = await this.findOne(id);
+        await this.formaPagoRepository.remove(formaPago);
+    }
+}
+

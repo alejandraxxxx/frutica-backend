@@ -1,6 +1,5 @@
 import { Cliente } from "src/clientes/entities/cliente.entity";
 import { DetalleFactura } from "src/detalle-factura/entities/detalle-factura.entity";
-import { Empleado } from "src/empleados/entities/empleado.entity";
 import { FormaPago } from "src/forma-pago/entities/forma-pago.entity";
 import { Pedido } from "src/pedidos/entities/pedidos.entity";
 import { Usuario } from "src/usuarios/entities/usuario.entity";
@@ -29,9 +28,6 @@ export class Factura {
     @Column({ type: "enum", enum: ['emitida', 'pagada', 'cancelada'], default: 'emitida' })
     estado: string;
 
-    @ManyToOne(() => Empleado, empleado => empleado.facturas)
-    empleado: Empleado;
- 
     @OneToMany(() => DetalleFactura, detalle => detalle.factura)
     detallesFactura: DetalleFactura[];
 }

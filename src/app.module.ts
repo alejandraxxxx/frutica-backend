@@ -1,8 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-
 import { Usuario } from './usuarios/entities/usuario.entity';
-import { Empleado } from './empleados/entities/empleado.entity';
 import { Cliente } from './clientes/entities/cliente.entity';
 import { Categoria } from './categoria//entities/categoria.entity';
 import { Producto } from './productos/entities/productos.entity';
@@ -15,16 +13,12 @@ import { InventarioMovimiento } from './inventario-movimiento/entities/inventari
 import { Direccion } from './direccion/entities/direccion.entity';
 import { Venta } from './venta/entities/venta.entity';
 import { Precio } from './precio/entities/precio.entity';
-import { EnvioDomicilio } from './envio-domicilio/entities/envio-domicilio.entity';
 import { DetalleFactura } from './detalle-factura/entities/detalle-factura.entity';
 import { Notificacion } from './notificaciones//entities/notificacion.entity';
 import { Credencial } from './credenciales/entities/credencial.entity';
-
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-
 import { UsuariosModule } from './usuarios/usuarios.module';
-import { EmpleadosModule } from './empleados/empleados.module';
 import { ClientesModule } from './clientes/clientes.module';
 import { CategoriaModule } from './categoria/categoria.module';
 import { ProductosModule } from './productos/productos.module';
@@ -37,12 +31,13 @@ import { InventarioMovimientoModule } from './inventario-movimiento/inventario-m
 import { DireccionesModule} from './direccion/direccion.module';
 import { VentaModule } from './venta/venta.module';
 import { PrecioModule } from './precio/precio.module';
-import { EnvioDomicilioModule } from './envio-domicilio/envio-domicilio.module';
 import { DetalleFacturaModule } from './detalle-factura/detalle-factura.module';
 import { NotificacionesModule } from './notificaciones/notificaciones.module';
 import { AuthModule } from './auth/auth.module';
 import { CredencialesModule } from './credenciales/credenciales.module';
 import { ConfigModule } from '@nestjs/config';
+import { TipoEntregaModule } from './tipo-entrega/tipo-entrega.module';
+import { TipoEntrega } from './tipo-entrega/entities/tipo-entrega.entity';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { CarritoModule } from './carrito/carrito.module';
 import { CarritoItemModule } from './carrito-item/carrito-item.module';
@@ -53,7 +48,6 @@ import { StripeModule } from './stripe/stripe.module';
 import { Pago } from './pagos/entities/pago.entity';
 
 
-
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -61,19 +55,24 @@ import { Pago } from './pagos/entities/pago.entity';
     }),
     TypeOrmModule.forRoot({
       type: 'mysql',
-      host: 'localhost', // O la IP del servidor donde está phpMyAdmin
-      port: 3306, // Puerto predeterminado de MySQL
-      username: 'root', // Usuario de la base de datos
-      password: '', // Contraseña de MySQL (deja vacío si no tiene)
-      database: 'frutica-bd', // Nombre de la base de datos en phpMyAdmin
-      entities: [Usuario, Empleado, Cliente, Categoria, Producto, Pedido, DetallePedido, Factura, FormaPago, Comentario, InventarioMovimiento,
-        Direccion, Venta, Precio, EnvioDomicilio, DetalleFactura, Notificacion, Credencial, Carrito, CarritoItem, Pago],
-      synchronize: true, // ⚠️ Solo en desarrollo, en producción usa migraciones
+      host: 'localhost',
+      port: 3306,
+      username: 'root',
+      password: '',
+      database: 'frutica-bd',
+      entities: [
+        Usuario, Empleado, Cliente, Categoria, Producto, Pedido, DetallePedido,
+        Factura, FormaPago, Comentario, InventarioMovimiento, Direccion, Venta,
+        Precio, EnvioDomicilio, DetalleFactura, Notificacion, Credencial,
+        Carrito, CarritoItem, Pago
+      ],
+      synchronize: true,
     }),
     UsuariosModule, EmpleadosModule, ClientesModule, CategoriaModule, ProductosModule, PedidosModule, DetallePedidoModule,
     FacturaModule, FormaPagoModule, ComentarioModule, InventarioMovimientoModule, DireccionesModule, VentaModule,
-    PrecioModule, EnvioDomicilioModule, DetalleFacturaModule, NotificacionesModule, AuthModule, CredencialesModule, CloudinaryModule, CarritoModule, CarritoItemModule, PagosModule, StripeModule, ],
-    
+    PrecioModule, EnvioDomicilioModule, DetalleFacturaModule, NotificacionesModule, AuthModule, CredencialesModule,
+    CloudinaryModule, CarritoModule, CarritoItemModule, PagosModule, StripeModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

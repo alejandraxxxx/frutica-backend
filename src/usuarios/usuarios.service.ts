@@ -1,12 +1,10 @@
-import { Injectable, ConflictException } from '@nestjs/common';
+import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
 import { CreateUsuarioDto } from './dto/create-usuario.dto';
-import { UpdateUsuarioDto } from './dto/update-usuario.dto';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { Usuario } from './entities/usuario.entity';
-import { Credencial } from 'src/credenciales/entities/credencial.entity';
-
+import { Credencial } from '../credenciales/entities/credencial.entity';
 
 @Injectable()
 export class UsuariosService {
@@ -18,71 +16,74 @@ export class UsuariosService {
     private credencialRepository: Repository<Credencial>,
   ) {}
 
+  // 🔹 Obtener todos los usuarios con credenciales
   async findAll() {
-    return this.usuarioRepository.find({ relations: ['credencial'] });
+    return this.usuarioRepository.find({ relations: ['credenciales'] });
   }
 
-  async create(createUsuarioDto: CreateUsuarioDto): Promise<Usuario> {
-    const { nombre, apellido_paterno, apellido_materno, telefono, correo_electronico, contrasena } = createUsuarioDto;
-
-    // Hashear la contraseña
-    const hashedPassword = await bcrypt.hash(contrasena, 10);
-
-    // Crear la credencial
-    const nuevaCredencial = this.credencialRepository.create({
-      email: correo_electronico,
-      password_hash: hashedPassword,
-    });
-    const credencialGuardada = await this.credencialRepository.save(nuevaCredencial);
-
-    // Crear el usuario
-    const nuevoUsuario = this.usuarioRepository.create({
-      nombre,
-      apellido_paterno,
-      apellido_materno,
-      telefono,
-      credencial: credencialGuardada,
-    });
-
-    return this.usuarioRepository.save(nuevoUsuario);
+  // 🔹 Buscar un usuario por ID
+  async findOne(id: number) {
+    const usuario = await this.usuarioRepository.findOne({ where: { usuario_k: id }, relations: ['credenciales'] });
+    if (!usuario) {
+      throw new NotFoundException(`Usuario con ID ${id} no encontrado`);
+    }
+    return usuario;
   }
 
-
-  findOne(id: number) {
-    return this.usuarioRepository.findOne({ where: { usuario_k: id }, relations: ['credencial'] });
-  }
-
+  // 🔹 Actualizar usuario
   async update(id: number, updateUsuarioDto: Partial<CreateUsuarioDto>) {
+    const usuario = await this.findOne(id);
+    if (!usuario) {
+      throw new NotFoundException(`Usuario con ID ${id} no encontrado`);
+    }
+
     await this.usuarioRepository.update(id, updateUsuarioDto);
     return this.findOne(id);
   }
 
+  // 🔹 Eliminar usuario
   async remove(id: number) {
     const usuario = await this.findOne(id);
     if (usuario) {
       await this.usuarioRepository.delete(id);
       return { message: 'Usuario eliminado' };
     }
-    return { message: 'Usuario no encontrado' };
+    throw new NotFoundException(`Usuario con ID ${id} no encontrado`);
   }
 
-  /*create(createUsuarioDto: CreateUsuarioDto) {
-    return 'This action adds a new usuario';
-  }
+  // 🔹 Crear un usuario y su credencial
+  async create(createUsuarioDto: CreateUsuarioDto): Promise<Usuario> {
+    const { nombre, apellido_paterno, apellido_materno, telefono, correo_electronico, contrasena } = createUsuarioDto;
 
-  findAll() {
-    return `This action returns all usuarios`;
-  }
+    // 1️⃣ Verificar si el correo ya está registrado
+    const existeCorreo = await this.credencialRepository.findOne({ where: { email: correo_electronico } });
+    if (existeCorreo) {
+      throw new ConflictException('El correo ya está registrado');
+    }
 
-  findOne(id: number) {
-    return `This action returns a #${id} usuario`;
-  }
+    // 2️⃣ Hashear la contraseña antes de guardarla
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(contrasena, saltRounds);
 
-  update(id: number, updateUsuarioDto: UpdateUsuarioDto) {
-    return `This action updates a #${id} usuario`;
-  }
+    // 3️⃣ Crear usuario en la tabla `usuarios`
+    const nuevoUsuario = this.usuarioRepository.create({
+      nombre,
+      apellido_paterno,
+      apellido_materno,
+      telefono,
+    });
 
-  remove(id: number) {
-    return `This action removes a #${id} usuario`;
-  }*/
+    await this.usuarioRepository.save(nuevoUsuario);
+
+    // 4️⃣ Crear credencial con email y contraseña hasheada
+    const nuevaCredencial = this.credencialRepository.create({
+      email: correo_electronico,
+      password_hash: hashedPassword,
+      usuario: nuevoUsuario, // Se asocia directamente con el usuario
+    });
+
+    await this.credencialRepository.save(nuevaCredencial);
+
+    return nuevoUsuario;
+  }
 }

@@ -28,10 +28,10 @@ export class Comentario {
     @Column({ length: 100, nullable: true })
     web: string;
 
-    @Column({ default: 1 })
-    estatus: number;
+    @Column({ type: 'boolean' })
+    estatus: boolean;
 
-    @Column({ default: 0 })
+    @Column({ nullable: true, type: 'boolean' })
     tiene_respuestas: boolean;
 
     @Column({ default: 0 })
@@ -40,8 +40,6 @@ export class Comentario {
     @Column({ type: "timestamp", default: () => "CURRENT_TIMESTAMP" })
     timestamp: Date;
 
-    @Column()
-    activo: boolean;
 
     @ManyToOne(() => Usuario, usuario => usuario.clientes)
     usuario: Usuario;
