@@ -7,10 +7,18 @@ import { Repository } from 'typeorm';
 
 @Injectable()
 export class FormaPagoService {
-    constructor(
-        @InjectRepository(FormaPago)
-        private readonly formaPagoRepository: Repository<FormaPago>,
-    ) {}
+
+
+  constructor(
+    @InjectRepository(FormaPago)
+    private readonly formaPagoRepository: Repository<FormaPago>){}
+
+    
+    async create(createFormaPagoDto: CreateFormaPagoDto): Promise<FormaPago> {
+      const nuevaForma = this.formaPagoRepository.create(createFormaPagoDto);
+      return await this.formaPagoRepository.save(nuevaForma);
+    }
+
 
     async create(createFormaPagoDto: CreateFormaPagoDto): Promise<FormaPago> {
         const nuevaFormaPago = this.formaPagoRepository.create(createFormaPagoDto);
@@ -29,6 +37,12 @@ export class FormaPagoService {
         return formaPago;
     }
 
+
+  async getActivePaymentMethods() {
+    return await this.formaPagoRepository.find({ where: { activo: true } });
+}
+}
+
     async update(id: number, updateFormaPagoDto: UpdateFormaPagoDto): Promise<FormaPago> {
         const formaPago = await this.findOne(id);
         Object.assign(formaPago, updateFormaPagoDto);
@@ -40,3 +54,4 @@ export class FormaPagoService {
         await this.formaPagoRepository.remove(formaPago);
     }
 }
+

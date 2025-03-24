@@ -39,8 +39,13 @@ import { ConfigModule } from '@nestjs/config';
 import { TipoEntregaModule } from './tipo-entrega/tipo-entrega.module';
 import { TipoEntrega } from './tipo-entrega/entities/tipo-entrega.entity';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
-
-
+import { CarritoModule } from './carrito/carrito.module';
+import { CarritoItemModule } from './carrito-item/carrito-item.module';
+import { Carrito } from './carrito/entities/carrito.entity';
+import { CarritoItem } from './carrito-item/entities/carrito-item.entity';
+import { PagosModule } from './pagos/pagos.module';
+import { StripeModule } from './stripe/stripe.module';
+import { Pago } from './pagos/entities/pago.entity';
 
 
 @Module({
@@ -50,21 +55,24 @@ import { CloudinaryModule } from './cloudinary/cloudinary.module';
     }),
     TypeOrmModule.forRoot({
       type: 'mysql',
-      host: 'localhost', // O la IP del servidor donde está phpMyAdmin
-      port: 3306, // Puerto predeterminado de MySQL
-      username: 'root', // Usuario de la base de datos
-      password: '', // Contraseña de MySQL (deja vacío si no tiene)
-      database: 'frutica-app1', // Nombre de la base de datos en phpMyAdmin
-      entities: [Usuario, Cliente, Categoria, Producto, Pedido, DetallePedido, Factura, FormaPago, Comentario, InventarioMovimiento,
-        Direccion, Venta, Precio,TipoEntrega , DetalleFactura, Notificacion, Credencial ],
-      synchronize: true, // ⚠️ Solo en desarrollo, en producción usa migraciones
+      host: 'localhost',
+      port: 3306,
+      username: 'root',
+      password: '',
+      database: 'frutica-bd',
+      entities: [
+        Usuario, Empleado, Cliente, Categoria, Producto, Pedido, DetallePedido,
+        Factura, FormaPago, Comentario, InventarioMovimiento, Direccion, Venta,
+        Precio, EnvioDomicilio, DetalleFactura, Notificacion, Credencial,
+        Carrito, CarritoItem, Pago
+      ],
+      synchronize: true,
     }),
-    UsuariosModule, ClientesModule, CategoriaModule, ProductosModule, PedidosModule, DetallePedidoModule,
-    FacturaModule, FormaPagoModule, ComentarioModule, InventarioMovimientoModule, DireccionesModule, VentaModule, 
-    PrecioModule, TipoEntregaModule, DetalleFacturaModule, NotificacionesModule, AuthModule, CredencialesModule, 
-    TipoEntregaModule, CloudinaryModule ],
-
-    
+    UsuariosModule, EmpleadosModule, ClientesModule, CategoriaModule, ProductosModule, PedidosModule, DetallePedidoModule,
+    FacturaModule, FormaPagoModule, ComentarioModule, InventarioMovimientoModule, DireccionesModule, VentaModule,
+    PrecioModule, EnvioDomicilioModule, DetalleFacturaModule, NotificacionesModule, AuthModule, CredencialesModule,
+    CloudinaryModule, CarritoModule, CarritoItemModule, PagosModule, StripeModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

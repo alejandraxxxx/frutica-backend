@@ -8,10 +8,6 @@ export const CloudinaryProvider = {
     const apiKey = configService.get<string>('CLOUDINARY_API_KEY');
     const apiSecret = configService.get<string>('CLOUDINARY_API_SECRET');
 
-    console.log(
-      `Cloudinary Config - Cloud Name: ${cloudName}, API Key: ${apiKey}, API Secret: ${apiSecret}`,
-    );
-
     cloudinary.config({
       cloud_name: cloudName,
       api_key: apiKey,

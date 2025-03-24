@@ -1,5 +1,5 @@
-import { Controller, Post, Get, Body, Param, Delete, Patch, Put, UseInterceptors, UploadedFile } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { Controller, Post, Get, Body, Param, Delete, Patch, Put, UseInterceptors, UploadedFile, UploadedFiles } from '@nestjs/common';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { ProductosService } from './productos.service';
 import { CreateProductoDto } from './dto/create-producto.dto';
 import { UpdateProductoDto } from './dto/update-producto.dto';
@@ -11,17 +11,17 @@ export class ProductosController {
   /**
    * 🛠 Crear un producto con imagen
    */
-  @Post()
-  @UseInterceptors(FileInterceptor('file'))
+  @Post('crear')
+  @UseInterceptors(FilesInterceptor('files', 10)) // nombre del campo y máximo 10 archivos
   async create(
     @Body() createProductoDto: CreateProductoDto,
-    @UploadedFile() file?: Express.Multer.File,
+    @UploadedFiles() files: Express.Multer.File[],
   ) {
-    return this.productosService.create(createProductoDto, file);
+    return this.productosService.create(createProductoDto, files);
   }
 
   /**
-   * 📦 Obtener todos los productos
+   * Obtener todos los productos
    */
   @Get()
   async findAll() {
@@ -29,7 +29,7 @@ export class ProductosController {
   }
 
   /**
-   * 🔍 Obtener un producto por ID
+   * Obtener un producto por ID
    */
   @Get(':id')
   async findOne(@Param('id') id: string) {
@@ -37,7 +37,7 @@ export class ProductosController {
   }
 
   /**
-   * 🖼 Subir una nueva imagen a un producto
+   *  Subir una nueva imagen a un producto
    */
   @Post(':id/upload')
   @UseInterceptors(FileInterceptor('file'))
@@ -49,7 +49,7 @@ export class ProductosController {
   }
 
   /**
-   * 📝 Actualizar producto
+   * Actualizar producto
    */
   @Put(':id')
   async update(@Param('id') id: string, @Body() updateProductoDto: UpdateProductoDto) {

@@ -9,26 +9,24 @@ export class CloudinaryService {
   constructor(
     @Inject('CLOUDINARY') private readonly cloudinary: CloudinaryInstance,
   ) {}
-  async uploadImage(
-    file: Express.Multer.File,
-  ): Promise<CloudinaryUploadResult> {
-    return new Promise((resolve, reject) => {
-      this.cloudinary.uploader
-        .upload_stream({ resource_type: 'auto' }, (error, result) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve(result as CloudinaryUploadResult);
-          }
-        })
-        .end(file.buffer);
-    });
+
+  async uploadImage(file: Express.Multer.File, folder = ''): Promise<CloudinaryUploadResult> {
+  return new Promise((resolve, reject) => {
+    this.cloudinary.uploader
+      .upload_stream({ resource_type: 'auto', folder }, (error, result) => {
+        if (error) reject(error);
+        else resolve(result as CloudinaryUploadResult);
+      })
+      .end(file.buffer);
+  });
+}
+
+async uploadImages(files: Express.Multer.File[], folder = ''): Promise<CloudinaryUploadResult[]> {
+  const uploadPromises = files.map(file => this.uploadImage(file, folder));
+  return Promise.all(uploadPromises);
+}
+
+  
+  
   }
 
-  async uploadImages(
-    files: Express.Multer.File[],
-  ): Promise<CloudinaryUploadResult[]> {
-    const uploadPromises = files.map((file) => this.uploadImage(file));
-    return Promise.all(uploadPromises);
-  }
-}

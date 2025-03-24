@@ -19,8 +19,8 @@ export class Producto {
     @Column({ length: 500, nullable: true })
     descripcion: string; // Descripción del producto
 
-    @Column({ length: 200, nullable: true })
-    foto: string;
+    @Column('simple-array')
+    foto: string [];
 
     @Column({ type: "float" })
     precio_estimado: number; // Precio base por unidad o kg
@@ -61,23 +61,8 @@ export class Producto {
     @Column({ length: 100, nullable: true })
     temporada: string; 
 
-    @Column({ length: 100, nullable: true })
-    clave: string;
-
-    @Column({ length: 45, nullable: true })
-    color: string;
-
     @Column({ length: 45 })
     proveedor: string;
-
-    @Column({ length: 45 })
-    tipo: string;
-
-    @Column({ type: "date", nullable: true })
-    fecha_ultima_venta: Date;
-
-    @Column({ type: "date", nullable: true })
-    fecha_ultima_compra: Date;
 
     @Column({ type: "timestamp", default: () => "CURRENT_TIMESTAMP" })
     fecha_actualizacion: Date;
@@ -88,23 +73,11 @@ export class Producto {
     @Column()
     numero_ventas: number;
 
-    @Column()
-    numero_compras: number;
-
     @ManyToOne(() => Precio, precio => precio.productos)
     precio: Precio;
 
     @ManyToOne(() => Categoria, categoria => categoria.productos)
     categoria: Categoria;
-
-    @Column({ default: 0 })
-    mayoreo: boolean;
-
-    @Column({ nullable: true })
-    piezas_minimas: number;
-
-    @OneToMany(() => Venta, venta => venta.producto)
-    ventas: Venta[];
 
     @OneToMany(() => DetalleFactura, detalle => detalle.producto)
     detallesFactura: DetalleFactura[];

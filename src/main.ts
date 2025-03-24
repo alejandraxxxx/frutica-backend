@@ -1,6 +1,9 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+
+import * as bodyParser from 'body-parser'; // Corrección aquí
+
 import * as cors from 'cors';
 
 async function bootstrap() {
@@ -22,6 +25,16 @@ async function bootstrap() {
     credentials: true, // Permite enviar cookies o headers de autenticación
   });
 
-  await app.listen(4000);
+
+  // Habilita el raw body para que Stripe pueda procesar bien el webhook
+  app.use(bodyParser.json({
+    verify: (req: any, res, buf) => {
+      req.rawBody = buf; // Guarda el raw body en la request
+    },
+  }));
+
+  await app.listen(3000);
+  console.log('Servidor corriendo en http://localhost:3000');
+
 }
 bootstrap();

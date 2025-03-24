@@ -1,8 +1,10 @@
+import { Carrito } from "src/carrito/entities/carrito.entity";
 import { Cliente } from "src/clientes/entities/cliente.entity";
 import { Credencial } from "src/credenciales/entities/credencial.entity";
 import { Direccion } from "src/direccion/entities/direccion.entity";
 import { InventarioMovimiento } from "src/inventario-movimiento/entities/inventario-movimiento.entity";
 import { Notificacion } from "src/notificaciones/entities/notificacion.entity";
+import { Pago } from "src/pagos/entities/pago.entity";
 import { Pedido } from "src/pedidos/entities/pedidos.entity";
 import { Venta } from "src/venta/entities/venta.entity";
 import { Entity, Unique, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, ManyToMany, JoinTable, OneToOne, JoinColumn } from "typeorm";
@@ -79,9 +81,16 @@ export class Usuario {
 
     @OneToMany(() => InventarioMovimiento, movimiento => movimiento.usuario)
     movimientosInventario: InventarioMovimiento[];
+ 
+    @OneToMany(() => Carrito, carrito => carrito.usuario)
+    carrito: Carrito[];
+
+    @OneToMany(() => Pago, pago => pago.usuario)
+    pagos: Pago[]; // Relación con la tabla Pago
 
     @OneToMany(() => Credencial, credencial => credencial.usuario)
     credenciales: Credencial[];
+
 }
 
 
