@@ -1,5 +1,4 @@
 import { Pedido } from "src/pedidos/entities/pedidos.entity";
-import { Usuario } from "src/usuarios/entities/usuario.entity";
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, ManyToMany, JoinTable } from "typeorm";
 
 @Entity()
@@ -39,10 +38,6 @@ export class Comentario {
 
     @Column({ type: "timestamp", default: () => "CURRENT_TIMESTAMP" })
     timestamp: Date;
-
-
-    @ManyToOne(() => Usuario, usuario => usuario.clientes)
-    usuario: Usuario;
 
     @OneToMany(() => Comentario, comentario => comentario.comentario_padre)
     respuestas: Comentario[];

@@ -1,9 +1,11 @@
+import { Type } from 'class-transformer';
 import { IsString, IsOptional, IsInt, IsBoolean, IsNumber, MaxLength, IsEnum } from 'class-validator';
 
 export class CreateProductoDto {
+    @IsOptional()
     @IsString()
     @MaxLength(50)
-    codigo_producto: string;
+    codigo_producto?: string;
 
     @IsString()
     @MaxLength(200)
@@ -18,8 +20,8 @@ export class CreateProductoDto {
     @IsString()
     @MaxLength(200)
     foto?: string;
-
-    @IsOptional()
+    
+    @Type(() => Number)
     @IsNumber()
     precio_estimado: number; // ✅ Precio base del producto
 

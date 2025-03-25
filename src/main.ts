@@ -6,23 +6,32 @@ import * as bodyParser from 'body-parser'; // Corrección aquí
 
 import * as cors from 'cors';
 
+import { ConfigService } from '@nestjs/config';
+
+
 async function bootstrap() {
+  //Crea la aplicación
   const app = await NestFactory.create(AppModule);
 
-  // Habilita la validación global de DTOs
+  //Obtén el servicio de configuración
+  const configService = app.get(ConfigService);
+
+  //Verifica si JWT_SECRET se está cargando correctamente
+  console.log('🔑 JWT_SECRET:', configService.get<string>('JWT_SECRET')); 
+
+  //Habilita la validación global de DTOs
   app.useGlobalPipes(new ValidationPipe({
-    whitelist: true,  // Elimina datos no definidos en el DTO
-    forbidNonWhitelisted: true, // Lanza error si hay datos no permitidos
-    transform: true,  // Convierte los datos al tipo definido en el DTO
+    whitelist: true, 
+    forbidNonWhitelisted: true, 
+    transform: true, 
   }));
-  
-  
-  // 🔹 Configurar CORS para permitir el frontend
+
+  //Configura CORS
   app.enableCors({
-    origin: ['http://localhost:8101'], // Cambia esto si tu frontend tiene otra URL
+    origin: ['http://localhost:8101'], 
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true, // Permite enviar cookies o headers de autenticación
+    credentials: true,
   });
 
 
@@ -33,8 +42,8 @@ async function bootstrap() {
     },
   }));
 
-  await app.listen(3000);
-  console.log('Servidor corriendo en http://localhost:3000');
 
+  //Inicia el servidor
+  await app.listen(4000);
 }
 bootstrap();

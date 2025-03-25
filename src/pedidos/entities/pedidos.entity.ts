@@ -1,14 +1,14 @@
-import { Cliente } from "src/clientes/entities/cliente.entity";
 import { Comentario } from "src/comentario/entities/comentario.entity";
 import { Venta } from "src/venta/entities/venta.entity";
-import { EnvioDomicilio } from "src/envio-domicilio/entities/envio-domicilio.entity";
 import { FormaPago } from "src/forma-pago/entities/forma-pago.entity";
 import { Usuario } from "src/usuarios/entities/usuario.entity";
 import { Factura } from "src/factura/entities/factura.entity";
 import { DetallePedido } from "src/detalle_pedido/entities/detalle_pedido.entity";
 
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, ManyToMany, JoinTable } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, ManyToMany, JoinTable, OneToOne, JoinColumn } from "typeorm";
 import { Pago } from "src/pagos/entities/pago.entity";
+import { TipoEntrega } from "src/tipo-entrega/entities/tipo-entrega.entity";
+import { DatosPersonales } from "src/datos-personales/entities/datos-personale.entity";
 
 @Entity()
 export class Pedido {
@@ -27,9 +27,6 @@ export class Pedido {
     @Column({ type: "decimal" })
     total: number;
 
-    @Column({ type: "enum", enum: ['domicilio', 'recoger_en_tienda'] })
-    tipo_entrega: string;
-
     @Column({ type: "enum", enum: ['pendiente', 'en preparación', 'enviado', 'entregado', 'cancelado'] })
     estado: string;
 
@@ -39,9 +36,10 @@ export class Pedido {
     @ManyToOne(() => FormaPago, formaPago => formaPago.pedidos)
     formaPago: FormaPago;
 
-    @ManyToOne(() => EnvioDomicilio, envio => envio.pedidos, { nullable: true })
-    envioDomicilio: EnvioDomicilio;
-
+    //relacion tipo de entrega
+    @OneToOne(() => TipoEntrega, tipo => tipo.pedido, { cascade: true, nullable: true })
+    @JoinColumn() // Esta es importante para OneToOne
+    tipo_entrega: TipoEntrega;
 
     @ManyToOne(() => Comentario, comentario => comentario.pedidos)
     comentario: Comentario;
@@ -54,4 +52,8 @@ export class Pedido {
 
     @OneToMany(() => Pago, pago => pago.pedido)
     pagos: Pago[];
+
+    @ManyToOne(() => DatosPersonales, cliente => cliente.pedidos)
+    cliente: DatosPersonales;
+
 }

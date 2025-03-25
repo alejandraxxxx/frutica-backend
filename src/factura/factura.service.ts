@@ -5,8 +5,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Factura } from './entities/factura.entity';
 import { Repository } from 'typeorm';
 import { Pedido } from 'src/pedidos/entities/pedidos.entity';
-import { Cliente } from 'src/clientes/entities/cliente.entity';
 import { FormaPago } from 'src/forma-pago/entities/forma-pago.entity';
+import { DatosPersonales } from 'src/datos-personales/entities/datos-personale.entity';
 
 @Injectable()
 export class FacturaService {
@@ -15,8 +15,8 @@ export class FacturaService {
         private readonly facturaRepository: Repository<Factura>,
         @InjectRepository(Pedido)
         private readonly pedidoRepository: Repository<Pedido>,
-        @InjectRepository(Cliente)
-        private readonly clienteRepository: Repository<Cliente>,
+        @InjectRepository(DatosPersonales)
+        private readonly datosRepository: Repository<DatosPersonales>,
         @InjectRepository(FormaPago)
         private readonly formaPagoRepository: Repository<FormaPago>,
     ) {}
@@ -27,7 +27,7 @@ export class FacturaService {
             throw new NotFoundException(`Pedido con ID ${createFacturaDto.pedidoPedidoK} no encontrado`);
         }
 
-        const cliente = await this.clienteRepository.findOne({ where: { cliente_k: createFacturaDto.clienteClientek } });
+        const cliente = await this.datosRepository.findOne({ where: { cliente_k: createFacturaDto.clienteClientek } });
         if (!cliente) {
             throw new NotFoundException(`Cliente con ID ${createFacturaDto.clienteClientek} no encontrado`);
         }

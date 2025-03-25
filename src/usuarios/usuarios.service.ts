@@ -3,7 +3,7 @@ import { CreateUsuarioDto } from './dto/create-usuario.dto';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
-import { Usuario } from './entities/usuario.entity';
+import { UserRole, Usuario } from './entities/usuario.entity';
 import { Credencial } from '../credenciales/entities/credencial.entity';
 
 @Injectable()
@@ -53,7 +53,7 @@ export class UsuariosService {
 
   // 🔹 Crear un usuario y su credencial
   async create(createUsuarioDto: CreateUsuarioDto): Promise<Usuario> {
-    const { nombre, apellido_paterno, apellido_materno, telefono, correo_electronico, contrasena } = createUsuarioDto;
+    const { nombre, apellido_paterno, apellido_materno, telefono, correo_electronico, contrasena, role } = createUsuarioDto;
 
     // 1️⃣ Verificar si el correo ya está registrado
     const existeCorreo = await this.credencialRepository.findOne({ where: { email: correo_electronico } });
@@ -71,6 +71,7 @@ export class UsuariosService {
       apellido_paterno,
       apellido_materno,
       telefono,
+      role: role ? UserRole[role.toUpperCase()] : UserRole.USER
     });
 
     await this.usuarioRepository.save(nuevoUsuario);

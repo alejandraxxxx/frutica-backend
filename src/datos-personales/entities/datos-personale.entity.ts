@@ -1,23 +1,17 @@
+
+import { Factura } from "src/factura/entities/factura.entity";
+import { Pedido } from "src/pedidos/entities/pedidos.entity";
 import { Usuario } from "src/usuarios/entities/usuario.entity";
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, ManyToMany, JoinTable } from "typeorm";
 
 @Entity()
-export class Cliente {
-    [x: string]: any;
+export class DatosPersonales {
+
     @PrimaryGeneratedColumn()
     cliente_k: number;
 
     @Column({ default: 0 })
     tipo_persona: number;
-
-    @Column({ length: 100 })
-    nombre: string;
-
-    @Column({ length: 45 })
-    apellido_paterno: string;
-
-    @Column({ length: 45 })
-    apellido_materno: string;
 
     @Column({ length: 20 })
     rfc: string;
@@ -31,14 +25,6 @@ export class Cliente {
     @Column({ nullable: true, length: 10 })
     regimen_fiscal: string;
 
-    @Column({ length: 100 })
-    email: string;
-
-    @Column({ nullable: true, length: 100 })
-    email_alterno: string;
-
-    @Column({ length: 30 })
-    tipo_registro: string;
 
     @Column({ nullable: true, length: 45 })
     uso_factura: string;
@@ -55,26 +41,8 @@ export class Cliente {
     @Column({ nullable: true, type: "blob" })
     foto: Buffer;
 
-    @ManyToOne(() => Usuario, usuario => usuario.clientes)
-    usuario: Usuario;
-
-    @Column()
-    usuario_creacion: number;
-
-    @Column({ type: "date" })
-    fecha_creacion: Date;
-
-    @Column()
-    sucursal_creacion: number;
-
     @Column()
     num_ventas: number;
-
-    @Column({ nullable: true, length: 50 })
-    num_telefonos: string;
-
-    @Column()
-    num_ventas_monto: number;
 
     @Column({ default: 0 })
     num_comentarios: number;
@@ -91,16 +59,15 @@ export class Cliente {
     @Column({ nullable: true, length: 500 })
     comentarios: string;
 
-    @Column()
-    activo: boolean;
+    @ManyToOne(() => Usuario, (usuario) => usuario.usuario_k, { eager: true })
+    usuario: Usuario;
 
-    @Column()
-    entrega_habitual: boolean;
+    // 📄 Un cliente puede tener muchas facturas
+    @OneToMany(() => Factura, (factura) => factura.cliente)
+    facturas: Factura[];
 
-    @Column()
-    pago_habitual: boolean;
-
-    @Column({ default: 0 })
-    user_verificado: boolean;
+    // 🧾 Un cliente puede tener muchos pedidos
+    @OneToMany(() => Pedido, (pedido) => pedido.pedido_k)
+    pedidos: Pedido[]
 
 }

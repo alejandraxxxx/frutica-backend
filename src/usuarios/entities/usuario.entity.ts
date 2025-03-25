@@ -1,5 +1,4 @@
 import { Carrito } from "src/carrito/entities/carrito.entity";
-import { Cliente } from "src/clientes/entities/cliente.entity";
 import { Credencial } from "src/credenciales/entities/credencial.entity";
 import { Direccion } from "src/direccion/entities/direccion.entity";
 import { InventarioMovimiento } from "src/inventario-movimiento/entities/inventario-movimiento.entity";
@@ -9,9 +8,13 @@ import { Pedido } from "src/pedidos/entities/pedidos.entity";
 import { Venta } from "src/venta/entities/venta.entity";
 import { Entity, Unique, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, ManyToMany, JoinTable, OneToOne, JoinColumn } from "typeorm";
 
+//exportamos un ENUM
+export enum UserRole {
+    ADMIN = 'admin',
+    USER = 'user',
+}
 
 @Entity()
-
 export class Usuario {
     @PrimaryGeneratedColumn()
     usuario_k: number;
@@ -40,8 +43,9 @@ export class Usuario {
     @Column({ default: false })
     login_normal: boolean;
 
-    @Column({ length: 45, default: 'cliente' })
-    rol_ENUM: string;
+    //columna de role
+    @Column({ type: 'enum', enum: UserRole, default: UserRole.USER })
+    role: UserRole;
 
     @Column({ length: 45, default: 'activo' })
     estado_ENUM: string;
@@ -64,9 +68,6 @@ export class Usuario {
     @Column()
     user_verificado: boolean;
 
-    @OneToMany(() => Cliente, cliente => cliente.usuario)
-    clientes: Cliente[];
-
     @OneToMany(() => Direccion, direccion => direccion.usuario)
     direcciones: Direccion[];
 
@@ -81,16 +82,16 @@ export class Usuario {
 
     @OneToMany(() => InventarioMovimiento, movimiento => movimiento.usuario)
     movimientosInventario: InventarioMovimiento[];
- 
+
     @OneToMany(() => Carrito, carrito => carrito.usuario)
     carrito: Carrito[];
 
     @OneToMany(() => Pago, pago => pago.usuario)
     pagos: Pago[]; // Relación con la tabla Pago
 
-    @OneToMany(() => Credencial, credencial => credencial.usuario)
-    credenciales: Credencial[];
-
+    @OneToOne(() => Credencial, credencial => credencial.usuario)
+    credenciales: Credencial;
+    
 }
 
 

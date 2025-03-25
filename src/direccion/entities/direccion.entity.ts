@@ -1,4 +1,3 @@
-import { Cliente } from "src/clientes/entities/cliente.entity";
 import { TipoEntrega } from "src/tipo-entrega/entities/tipo-entrega.entity";
 import { Usuario } from "src/usuarios/entities/usuario.entity";
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, ManyToMany, JoinTable } from "typeorm";
@@ -61,9 +60,6 @@ export class Direccion {
 
     @Column({ type: "decimal", precision: 9, scale: 6 })
     longitud: number;
-
-    @ManyToOne(() => Cliente, cliente => cliente.direcciones)
-    cliente: Cliente;
 
     @ManyToOne(() => Usuario, usuario => usuario.direcciones)
     usuario: Usuario;

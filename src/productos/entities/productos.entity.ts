@@ -1,17 +1,27 @@
+import { Type } from "class-transformer";
+import { IsNumber } from "class-validator";
 import { Categoria } from "src/categoria/entities/categoria.entity";
 import { DetalleFactura } from "src/detalle-factura/entities/detalle-factura.entity";
 import { InventarioMovimiento } from "src/inventario-movimiento/entities/inventario-movimiento.entity";
 import { Precio } from "src/precio/entities/precio.entity";
 import { Venta } from "src/venta/entities/venta.entity";
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, BeforeInsert, BeforeUpdate } from "typeorm";
+import { v4 as uuidv4 } from 'uuid';
 
 @Entity()
 export class Producto {
     @PrimaryGeneratedColumn()
     producto_k: number;
 
-    @Column({ length: 50 })
+    @Column({ length: 50, nullable: true, unique: true })
     codigo_producto: string;
+
+    @BeforeInsert()
+    asignarCodigo() {
+        if (!this.codigo_producto) {
+            this.codigo_producto = `PROD-${uuidv4().split('-')[0].toUpperCase()}`;
+        }
+    }
 
     @Column({ length: 200 })
     nombre: string;
@@ -20,9 +30,10 @@ export class Producto {
     descripcion: string; // Descripción del producto
 
     @Column('simple-array')
-    foto: string [];
+    foto: string[];
 
-    @Column({ type: "float" })
+    @Type(() => Number)
+    @IsNumber()
     precio_estimado: number; // Precio base por unidad o kg
 
     @Column({ type: "enum", enum: ["kg", "unidad"], default: "kg" })
@@ -37,6 +48,21 @@ export class Producto {
     @Column({ type: "boolean", default: true })
     activo: boolean; // Si el producto está disponible
 
+    /** ✅ Hook que desactiva el producto si se queda sin existencias */
+    @BeforeInsert()
+    @BeforeUpdate()
+    checkExistencias() {
+        this.activo = this.total_existencias > 0;
+    }
+
+    // ✅ Hook que actualiza automáticamente el campo `activo`
+    @BeforeInsert()
+    @BeforeUpdate()
+    actualizarEstadoActivo() {
+        this.activo = this.total_existencias > 0;
+    }
+
+    
     @Column({ type: "boolean", default: false })
     requiere_pesaje: boolean; // Si el peso exacto se calcula al pesar el producto
 
@@ -59,7 +85,7 @@ export class Producto {
     unidad_peso: string; // Unidad de peso (Kg o gramos)
 
     @Column({ length: 100, nullable: true })
-    temporada: string; 
+    temporada: string;
 
     @Column({ length: 45 })
     proveedor: string;
@@ -85,3 +111,4 @@ export class Producto {
     @OneToMany(() => InventarioMovimiento, movimiento => movimiento.producto)
     movimientosInventario: InventarioMovimiento[];
 }
+

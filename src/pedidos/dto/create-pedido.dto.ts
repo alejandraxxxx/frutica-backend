@@ -4,8 +4,6 @@ export class CreatePedidoDto {
     @IsDecimal()
     total: number;
 
-    @IsEnum(['domicilio', 'recoger_en_tienda'])
-    tipo_entrega: 'domicilio' | 'recoger_en_tienda';
 
     @IsString()
     @MaxLength(20)
@@ -30,6 +28,10 @@ export class CreatePedidoDto {
     @IsOptional()
     @IsInt()
     envioDomicilioEnvioK?: number;
+    
+    @IsOptional()
+    @IsInt()
+    tipoEntregaEnvioK?: number;
 
     @IsOptional()
     @IsInt()
