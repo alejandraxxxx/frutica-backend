@@ -21,10 +21,10 @@ export class Pedido {
     @Column({ type: "timestamp", default: () => "CURRENT_TIMESTAMP" })
     fecha_pedido: Date;
 
-    @Column({ type: "decimal" })
+    @Column({ type: "decimal", precision: 10, scale: 2 })
     subtotal: number; // Se agregó para separar impuestos y total final
 
-    @Column({ type: "decimal" })
+    @Column({ type: "decimal", precision: 10, scale: 2 })
     total: number;
 
     @Column({ type: "enum", enum: ['pendiente', 'en preparación', 'enviado', 'entregado', 'cancelado'] })

@@ -1,5 +1,6 @@
 import { Carrito } from "src/carrito/entities/carrito.entity";
 import { Credencial } from "src/credenciales/entities/credencial.entity";
+import { DatosPersonales } from "src/datos-personales/entities/datos-personale.entity";
 import { Direccion } from "src/direccion/entities/direccion.entity";
 import { InventarioMovimiento } from "src/inventario-movimiento/entities/inventario-movimiento.entity";
 import { Notificacion } from "src/notificaciones/entities/notificacion.entity";
@@ -91,6 +92,10 @@ export class Usuario {
 
     @OneToOne(() => Credencial, credencial => credencial.usuario)
     credenciales: Credencial;
+
+    @OneToMany(() => DatosPersonales, (datos) => datos.usuario)
+    datos: DatosPersonales[];
+
     
 }
 

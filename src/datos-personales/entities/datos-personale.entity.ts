@@ -25,7 +25,6 @@ export class DatosPersonales {
     @Column({ nullable: true, length: 10 })
     regimen_fiscal: string;
 
-
     @Column({ nullable: true, length: 45 })
     uso_factura: string;
 
@@ -59,8 +58,9 @@ export class DatosPersonales {
     @Column({ nullable: true, length: 500 })
     comentarios: string;
 
-    @ManyToOne(() => Usuario, (usuario) => usuario.usuario_k, { eager: true })
+    @ManyToOne(() => Usuario, (usuario) => usuario.datos, { eager: true })
     usuario: Usuario;
+
 
     // 📄 Un cliente puede tener muchas facturas
     @OneToMany(() => Factura, (factura) => factura.cliente)

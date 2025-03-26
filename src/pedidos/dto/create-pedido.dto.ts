@@ -1,9 +1,11 @@
-import { IsString, IsEnum, IsOptional, IsInt, IsDecimal, MaxLength } from 'class-validator';
+import { IsString, IsEnum, IsOptional, IsInt, IsDecimal, MaxLength, IsNumber } from 'class-validator';
 
 export class CreatePedidoDto {
-    @IsDecimal()
+    @IsNumber({ maxDecimalPlaces: 2 })
+    subtotal: number;
+    
+    @IsNumber({ maxDecimalPlaces: 2 })
     total: number;
-
 
     @IsString()
     @MaxLength(20)
