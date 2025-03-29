@@ -55,22 +55,18 @@ import { Pago } from './pagos/entities/pago.entity';
     }),
     TypeOrmModule.forRoot({
       type: 'mysql',
-      host: 'localhost',
-      port: 3306,
-      username: 'root',
-      password: '',
-      database: 'frutica-bd',
-      entities: [
-        Usuario, Empleado, Cliente, Categoria, Producto, Pedido, DetallePedido,
-        Factura, FormaPago, Comentario, InventarioMovimiento, Direccion, Venta,
-        Precio, EnvioDomicilio, DetalleFactura, Notificacion, Credencial,
-        Carrito, CarritoItem, Pago
-      ],
-      synchronize: true,
+      host: 'localhost', // O la IP del servidor donde está phpMyAdmin
+      port: 3306, // Puerto predeterminado de MySQL
+      username: 'root', // Usuario de la base de datos
+      password: '', // Contraseña de MySQL (deja vacío si no tiene)
+      database: 'frutica-bd', // Nombre de la base de datos en phpMyAdmin
+      entities: [Usuario, Cliente, Categoria, Producto, Pedido, DetallePedido, Factura, FormaPago, Comentario, InventarioMovimiento,
+        Direccion, Venta, Precio, DetalleFactura, Notificacion, Credencial, Carrito, CarritoItem, Pago],
+      synchronize: false, // ⚠️ Solo en desarrollo, en producción usa migraciones
     }),
-    UsuariosModule, EmpleadosModule, ClientesModule, CategoriaModule, ProductosModule, PedidosModule, DetallePedidoModule,
+    UsuariosModule, ClientesModule, CategoriaModule, ProductosModule, PedidosModule, DetallePedidoModule,
     FacturaModule, FormaPagoModule, ComentarioModule, InventarioMovimientoModule, DireccionesModule, VentaModule,
-    PrecioModule, EnvioDomicilioModule, DetalleFacturaModule, NotificacionesModule, AuthModule, CredencialesModule,
+    PrecioModule, DetalleFacturaModule, NotificacionesModule, AuthModule, CredencialesModule,
     CloudinaryModule, CarritoModule, CarritoItemModule, PagosModule, StripeModule,
   ],
   controllers: [AppController],
