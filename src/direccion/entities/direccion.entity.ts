@@ -70,5 +70,9 @@ export class Direccion {
 
     @OneToMany(() => TipoEntrega, envio => envio.direccion)
     envios: TipoEntrega[];
+    
+    @Column({ default: false })
+    es_publica: boolean;
+
    
 }

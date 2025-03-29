@@ -1,16 +1,25 @@
-import { IsInt, IsNumber, IsOptional } from "class-validator";
+import { IsEnum, IsInt, IsNumber, IsOptional, IsPositive } from 'class-validator';
 
 export class CreateCarritoDto {
-    @IsInt()
-    usuarioId: number;
+  @IsInt()
+  usuarioId: number;
 
-    @IsInt()
-    productoId: number;
+  @IsInt()
+  productoId: number;
 
-    @IsInt()
-    cantidad: number;
+  @IsNumber()
+  @IsPositive()
+  cantidad: number;
 
-    @IsOptional()
-    @IsNumber()
-    peso_seleccionado?: number;
+  @IsEnum(['kg', 'pieza'])
+  tipo_medida: 'kg' | 'pieza';
+
+  @IsOptional()
+  @IsNumber()
+  peso_personalizado?: number;
+
+  @IsOptional()
+  @IsEnum(['Chico', 'Mediano', 'Grande'])
+  tamano?: 'Chico' | 'Mediano' | 'Grande';
+
 }

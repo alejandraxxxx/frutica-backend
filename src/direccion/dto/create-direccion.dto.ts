@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, IsOptional, IsInt, IsDecimal, MaxLength } from 'class-validator';
+import { IsNotEmpty, IsString, IsOptional, IsInt, IsDecimal, MaxLength, IsBoolean } from 'class-validator';
 
 export class CreateDireccionDto {
     @IsNotEmpty()
@@ -75,4 +75,8 @@ export class CreateDireccionDto {
     @IsOptional()
     @IsDecimal({ decimal_digits: '0,6' })
     longitud?: number;  // Se generará con Google Maps API
+
+    @IsOptional()
+    @IsBoolean()
+    es_publica: boolean;
 }

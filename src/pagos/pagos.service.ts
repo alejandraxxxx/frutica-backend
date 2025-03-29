@@ -10,6 +10,8 @@ import { unlink } from 'fs/promises';
 import { join } from 'path';
 import { FormaPago } from 'src/forma-pago/entities/forma-pago.entity';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
+import { EstadoPedido } from 'src/pedidos/pedido-estado.enum';
+
 
 @Injectable()
 export class PagosService {
@@ -103,46 +105,53 @@ export class PagosService {
   async confirmPayment(paymentIntentId: string) {
     try {
       console.log(`🔹 Confirmando pago con PaymentIntent ID: ${paymentIntentId}`);
-
+  
       const paymentIntent = await this.stripe.paymentIntents.retrieve(paymentIntentId);
-
+  
       if (!paymentIntent) {
         throw new NotFoundException(`No se encontró el PaymentIntent con ID ${paymentIntentId}`);
       }
-
+  
       if (paymentIntent.status !== 'succeeded') {
         throw new BadRequestException('El PaymentIntent no se ha confirmado correctamente.');
       }
-
+  
       const payment = await this.pagosRepository.findOne({
         where: { external_transaction_id: paymentIntentId },
         relations: ['pedido'],
       });
-
+  
       if (!payment) {
         throw new NotFoundException(`No se encontró un pago con PaymentIntent ${paymentIntentId}`);
       }
-
+  
+      // 🔹 Actualizar estado del pago
       payment.estado = PagoState.REALIZADO;
       payment.fecha_pago = new Date();
       await this.pagosRepository.save(payment);
-
-      console.log(`Pago confirmado con éxito`);
-
+  
+      // 🔹 Cambiar estado del pedido a "en_preparacion" si está en "aprobado"
+      if (payment.pedido && payment.pedido.estado === 'aprobado') {
+        payment.pedido.estado = EstadoPedido.EN_PREPARACION;
+        await this.pedidosRepository.save(payment.pedido);
+        console.log('Pedido actualizado a en_preparacion');
+      }
+  
       return { status: 'success', message: 'Pago confirmado correctamente' };
     } catch (error) {
-      console.error('Error real:', error);
-    
+      console.error('Error real al confirmar pago:', error);
+  
       throw new HttpException(
         {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
           error: 'Error al confirmar el pago con tarjeta',
-          details: error.message || error, 
+          details: error.message || error,
         },
         HttpStatus.INTERNAL_SERVER_ERROR
       );
     }
   }
+  
   
   async uploadComprobante(pagoId: number, file: Express.Multer.File) {
     const pago = await this.pagosRepository.findOne({

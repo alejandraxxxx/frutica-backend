@@ -11,6 +11,6 @@ Cliente
   imports: [TypeOrmModule.forFeature([Cliente])],
   controllers: [ClientesController],
   providers: [ClientesService],
-  exports:[ClientesService]
+  exports: [TypeOrmModule], // 👈 Esto debe estar
 })
 export class ClientesModule {}

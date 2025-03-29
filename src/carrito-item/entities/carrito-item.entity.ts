@@ -16,13 +16,18 @@ export class CarritoItem {
     @Column()
     cantidad: number;
 
-    @Column({ type: "enum", enum: ["kg", "piezas"] })
-    tipo_medida: "kg" | "piezas";
+    @Column({ type: "enum", enum: ["kg", "pieza"] })
+    tipo_medida: "kg" | "pieza";
+    
 
     @Column({ type: "float" })
     precio_total: number;
     
     @Column({ type: 'float', nullable: true })
     peso_seleccionado: number; // Peso total en KG (si aplica)
+
+    @Column({ type: "enum", enum: ["Chico", "Mediano", "Grande"], nullable: true })
+    tamano: 'Chico' | 'Mediano' | 'Grande';
+
     
 }

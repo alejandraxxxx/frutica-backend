@@ -1,37 +1,32 @@
-import { IsString, IsEnum, IsOptional, IsInt, IsDecimal, MaxLength } from 'class-validator';
+import { IsString, IsEnum, IsOptional, IsInt, IsDecimal, MaxLength, IsNumber } from 'class-validator';
 
 export class CreatePedidoDto {
-    @IsDecimal()
-    total: number;
+    @IsEnum(['Entrega a domicilio', 'Pasar a recoger'])
+    tipo_entrega: 'Entrega a domicilio' | 'Pasar a recoger';
+  
+    @IsNumber()
+    formaPagoId: number;
+  
+    @IsOptional()
+    @IsNumber()
+    direccionId?: number;
 
-    @IsEnum(['domicilio', 'recoger_en_tienda'])
-    tipo_entrega: 'domicilio' | 'recoger_en_tienda';
-
+    @IsOptional()
+    @IsNumber()
+    usuarioId?: number;
+  
+    @IsOptional()
     @IsString()
-    @MaxLength(20)
-    estado: string;
-
+    comentario?: string;
+  
     @IsString()
-    @MaxLength(15)
-    registrado_desde: string;
-
-    @IsOptional()
-    @IsInt()
-    usuarioUsuarioK?: number;
-
-    @IsOptional()
-    @IsInt()
-    formaPagoFormaK?: number;
-
-    @IsOptional()
-    @IsInt()
-    clienteClienteK?: number;
-
-    @IsOptional()
-    @IsInt()
-    envioDomicilioEnvioK?: number;
-
-    @IsOptional()
-    @IsInt()
-    comentarioComentarioK?: number;
-}
+    fecha_entrega: string;
+  
+    @IsString()
+    horario_entrega: string;
+  
+    @IsNumber()
+    costo_envio: number;
+  
+  }
+  

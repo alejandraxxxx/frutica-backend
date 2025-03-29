@@ -10,12 +10,15 @@ import { Carrito } from 'src/carrito/entities/carrito.entity';
 import { CarritoItem } from 'src/carrito-item/entities/carrito-item.entity';
 import { Comentario } from 'src/comentario/entities/comentario.entity';
 import { DetallePedido } from 'src/detalle_pedido/entities/detalle_pedido.entity';
-import { EnvioDomicilio } from 'src/envio-domicilio/entities/envio-domicilio.entity';
+import { TipoEntrega } from 'src/tipo-entrega/entities/tipo-entrega.entity';
+import { ClientesModule } from 'src/clientes/clientes.module';
+import { Direccion } from 'src/direccion/entities/direccion.entity';
+import { PagosModule } from 'src/pagos/pagos.module';
 
 @Module({
   controllers: [PedidosController],
   providers: [PedidosService],
-  imports: [TypeOrmModule.forFeature([Pago, Pedido, FormaPago, Usuario, Carrito, CarritoItem, Comentario, DetallePedido])], // Registra las entidades
+  imports: [TypeOrmModule.forFeature([Pago, Pedido, FormaPago, Usuario, Carrito, CarritoItem, Comentario, DetallePedido, TipoEntrega, Direccion]), ClientesModule, PagosModule], // Registra las entidades
   exports: [PedidosService]
 })
 export class PedidosModule {}

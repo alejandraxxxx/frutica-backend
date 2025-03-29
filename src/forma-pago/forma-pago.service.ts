@@ -14,10 +14,6 @@ export class FormaPagoService {
     private readonly formaPagoRepository: Repository<FormaPago>){}
 
     
-    async create(createFormaPagoDto: CreateFormaPagoDto): Promise<FormaPago> {
-      const nuevaForma = this.formaPagoRepository.create(createFormaPagoDto);
-      return await this.formaPagoRepository.save(nuevaForma);
-    }
 
 
     async create(createFormaPagoDto: CreateFormaPagoDto): Promise<FormaPago> {
@@ -41,7 +37,7 @@ export class FormaPagoService {
   async getActivePaymentMethods() {
     return await this.formaPagoRepository.find({ where: { activo: true } });
 }
-}
+
 
     async update(id: number, updateFormaPagoDto: UpdateFormaPagoDto): Promise<FormaPago> {
         const formaPago = await this.findOne(id);

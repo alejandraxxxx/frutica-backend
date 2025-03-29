@@ -2,7 +2,6 @@ import { Categoria } from "src/categoria/entities/categoria.entity";
 import { DetalleFactura } from "src/detalle-factura/entities/detalle-factura.entity";
 import { InventarioMovimiento } from "src/inventario-movimiento/entities/inventario-movimiento.entity";
 import { Precio } from "src/precio/entities/precio.entity";
-import { Venta } from "src/venta/entities/venta.entity";
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany } from "typeorm";
 
 @Entity()
@@ -17,49 +16,48 @@ export class Producto {
     nombre: string;
 
     @Column({ length: 500, nullable: true })
-    descripcion: string; // Descripción del producto
+    descripcion: string;
 
-    @Column('simple-array')
-    foto: string [];
-
-    @Column({ type: "float" })
-    precio_estimado: number; // Precio base por unidad o kg
-
-    @Column({ type: "enum", enum: ["kg", "unidad"], default: "kg" })
-    unidad_venta: "kg" | "unidad"; // Si el precio es por KG o unidad
+    @Column('simple-array',{nullable: true })
+    foto: string[];
 
     @Column({ type: "float", nullable: true })
-    peso_promedio: number; // Peso promedio de una unidad (Ej: 200g por mandarina)
+    precio_por_kg: number;
+
+    @Column({ type: "float", nullable: true })
+    precio_por_pieza: number;
+
+    @Column({ type: "enum", enum: ["kg", "pieza"], default: "kg" })
+    unidad_venta: "kg" | "pieza"; // sugerencia por defecto
+
+    @Column({ type: "float", nullable: true })
+    peso_promedio: number; // usado para estimar precio por pieza si se vende por peso
+
+    @Column({ type: 'float', nullable: true })
+    peso_total: number;
 
     @Column()
-    total_existencias: number; // Cantidad disponible en stock (kg o unidades)
+    total_existencias: number;
 
     @Column({ type: "boolean", default: true })
-    activo: boolean; // Si el producto está disponible
+    activo: boolean;
+
+    @Column({ type: "boolean", default: true })
+    requiere_pesaje: boolean;
 
     @Column({ type: "boolean", default: false })
-    requiere_pesaje: boolean; // Si el peso exacto se calcula al pesar el producto
+    usa_tamano: boolean;
 
-    @Column({ type: "boolean", default: false })
-    usa_tamano: boolean; // Si el producto usa tamaños (Ej: Sandía Grande, Mediana, Chica)
 
-    @Column({ type: "enum", enum: ["Chico", "Mediano", "Grande"], nullable: true })
-    tamano: "Chico" | "Mediano" | "Grande"; // Tamaño del producto si usa_tamano = true
 
     @Column({ type: "float", nullable: true })
-    peso_estimado: number; // Peso estimado en gramos basado en el tamaño
-
-    @Column({ type: "boolean", default: false })
-    variaciones_precio: boolean; // Si el producto puede tener variaciones de precio por peso
-
-    @Column({ type: "float", nullable: true })
-    peso_total: number; // Peso total en gramos (si aplica)
+    peso_estimado: number; // según tamaño, útil si no se pesa individualmente
 
     @Column({ type: "enum", enum: ["kg", "g"], default: "kg" })
-    unidad_peso: string; // Unidad de peso (Kg o gramos)
+    unidad_peso: string;
 
     @Column({ length: 100, nullable: true })
-    temporada: string; 
+    temporada: string;
 
     @Column({ length: 45 })
     proveedor: string;
@@ -67,13 +65,13 @@ export class Producto {
     @Column({ type: "timestamp", default: () => "CURRENT_TIMESTAMP" })
     fecha_actualizacion: Date;
 
-    @Column()
+    @Column({ default: 0 })
     num_comentarios: number;
 
-    @Column()
+    @Column({ default: 0 })
     numero_ventas: number;
 
-    @ManyToOne(() => Precio, precio => precio.productos)
+    @ManyToOne(() => Precio, precio => precio.productos, { nullable: true })
     precio: Precio;
 
     @ManyToOne(() => Categoria, categoria => categoria.productos)
@@ -84,4 +82,14 @@ export class Producto {
 
     @OneToMany(() => InventarioMovimiento, movimiento => movimiento.producto)
     movimientosInventario: InventarioMovimiento[];
+
+    @Column({ type: 'float', nullable: true })
+    peso_chico: number;
+
+    @Column({ type: 'float', nullable: true })
+    peso_mediano: number;
+
+    @Column({ type: 'float', nullable: true })
+    peso_grande: number;
+
 }

@@ -1,5 +1,6 @@
 import { Carrito } from "src/carrito/entities/carrito.entity";
 import { Cliente } from "src/clientes/entities/cliente.entity";
+import { Comentario } from "src/comentario/entities/comentario.entity";
 import { Credencial } from "src/credenciales/entities/credencial.entity";
 import { Direccion } from "src/direccion/entities/direccion.entity";
 import { InventarioMovimiento } from "src/inventario-movimiento/entities/inventario-movimiento.entity";
@@ -90,6 +91,9 @@ export class Usuario {
 
     @OneToMany(() => Credencial, credencial => credencial.usuario)
     credenciales: Credencial[];
+
+    @OneToMany(() => Comentario, comentario => comentario.usuario)
+    comentarios: Comentario[];
 
 }
 

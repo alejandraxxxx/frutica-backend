@@ -34,13 +34,15 @@ export class ProductosService {
     const {
       categoriaCategoriaK,
       unidad_venta,
-      peso_estimado,
       usa_tamano,
       tamano,
+      peso_estimado,
+      peso_chico,
+      peso_mediano,
+      peso_grande,
       ...rest
     } = createProductoDto;
   
-    // Validación de categoría
     let categoria = null;
     if (categoriaCategoriaK) {
       categoria = await this.categoriaRepo.findOne({
@@ -49,44 +51,47 @@ export class ProductosService {
       if (!categoria) throw new NotFoundException('Categoría no encontrada');
     }
   
-    //  Validación de límite de imágenes
-    if (files && files.length > 10) {
-      throw new BadRequestException('Solo se permiten hasta 10 imágenes por producto');
-    }
-  
-    //  Subir imágenes a Cloudinary
+    // Subir imágenes a Cloudinary
     let imageUrls: string[] = [];
     if (files && files.length > 0) {
+      if (files.length > 10) throw new BadRequestException('Máximo 10 imágenes');
       const uploads = await this.cloudinaryService.uploadImages(files, 'productos');
-      imageUrls = uploads.map((img) => img.secure_url);
+      imageUrls = uploads.map(img => img.secure_url);
     }
   
-    //  Cálculo del peso
-    let pesoFinal = null;
-    let pesoEstimado = null;
-    if (usa_tamano) {
-      if (!tamano) {
-        throw new BadRequestException('Debe seleccionar un tamaño (Chico, Mediano, Grande).');
+    let pesoCalculado = null;
+  
+
+    // Si el producto NO usa tamaño, calculamos el peso estimado aquí
+    if (!usa_tamano) {
+      if (peso_estimado == null) {
+        throw new BadRequestException('Debe proporcionar un peso estimado para este producto.');
       }
-      const pesosEstimados = { Chico: 3000, Mediano: 5000, Grande: 8000 };
-      pesoEstimado = pesosEstimados[tamano];
-    } else {
-      pesoFinal = unidad_venta === 'kg' ? (peso_estimado ?? 0) * 1000 : peso_estimado;
+    
+      pesoCalculado = unidad_venta === 'kg'
+        ? peso_estimado * 1000 // Convertimos a gramos si el admin lo da en kg
+        : peso_estimado;
     }
+    
+    // Si usa tamaño, el peso se calculará dinámicamente en el carrito (según el tamaño seleccionado)
+    
   
     const producto = this.productoRepo.create({
-        ...rest,
-        foto: imageUrls, // arreglo de strings
-        categoria,
-        usa_tamano,
-        tamano: usa_tamano ? tamano : null,
-        peso_total: usa_tamano ? null : pesoFinal,
-        peso_estimado: usa_tamano ? pesoEstimado : null,
-      });
-      
-      return this.productoRepo.save(producto); // 
-      
+      ...rest,
+      unidad_venta,
+      categoria,
+      foto: imageUrls,
+      usa_tamano,
+      peso_estimado: usa_tamano ? pesoCalculado : peso_estimado,
+      peso_total: usa_tamano ? null : pesoCalculado,
+      peso_chico,
+      peso_mediano,
+      peso_grande,
+    });
+  
+    return this.productoRepo.save(producto);
   }
+  
   
 
   /**
