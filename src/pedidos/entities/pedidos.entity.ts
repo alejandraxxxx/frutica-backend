@@ -7,8 +7,9 @@ import { DetallePedido } from "src/detalle_pedido/entities/detalle_pedido.entity
 
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, ManyToMany, JoinTable, OneToOne, JoinColumn } from "typeorm";
 import { Pago } from "src/pagos/entities/pago.entity";
+import { Direccion } from "src/direccion/entities/direccion.entity";
 import { TipoEntrega } from "src/tipo-entrega/entities/tipo-entrega.entity";
-import { DatosPersonales } from "src/datos-personales/entities/datos-personale.entity";
+import { EstadoPedido } from "../pedido-estado.enum";
 
 @Entity()
 export class Pedido {
@@ -27,21 +28,13 @@ export class Pedido {
     @Column({ type: "decimal", precision: 10, scale: 2 })
     total: number;
 
-    @Column({ type: "enum", enum: ['pendiente', 'en preparación', 'enviado', 'entregado', 'cancelado'] })
-    estado: string;
-
-    @Column({ type: "enum", enum: ['pendiente', 'pagado', 'cancelado'] })
-    estado_pago: string; // Se agregó para manejar el pago antes de generar la venta
+    @Column({ type: 'enum', enum: EstadoPedido, default: EstadoPedido.SOLICITADO })
+    estado: EstadoPedido;
 
     @ManyToOne(() => FormaPago, formaPago => formaPago.pedidos)
     formaPago: FormaPago;
 
-    //relacion tipo de entrega
-    @OneToOne(() => TipoEntrega, tipo => tipo.pedido, { cascade: true, nullable: true })
-    @JoinColumn() // Esta es importante para OneToOne
-    tipo_entrega: TipoEntrega;
-
-    @ManyToOne(() => Comentario, comentario => comentario.pedidos)
+    @ManyToOne(() => Comentario, comentario => comentario.pedido) 
     comentario: Comentario;
 
     @OneToMany(() => Factura, factura => factura.pedido)
@@ -53,7 +46,7 @@ export class Pedido {
     @OneToMany(() => Pago, pago => pago.pedido)
     pagos: Pago[];
 
-    @ManyToOne(() => DatosPersonales, cliente => cliente.pedidos)
-    cliente: DatosPersonales;
+    @ManyToOne(() => TipoEntrega, tipo => tipo.pedidos)
+    tipoEntrega: TipoEntrega;
 
 }

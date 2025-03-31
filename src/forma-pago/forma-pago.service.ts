@@ -12,18 +12,19 @@ export class FormaPagoService {
         private readonly formaPagoRepository: Repository<FormaPago>,
     ) { }
 
-    /** ✅ Crear una nueva forma de pago */
+
+
     async create(createFormaPagoDto: CreateFormaPagoDto): Promise<FormaPago> {
         const nuevaFormaPago = this.formaPagoRepository.create(createFormaPagoDto);
         return await this.formaPagoRepository.save(nuevaFormaPago);
     }
 
-    /** ✅ Obtener todas las formas de pago */
+    /** Obtener todas las formas de pago */
     async findAll(): Promise<FormaPago[]> {
         return await this.formaPagoRepository.find();
     }
 
-    /** ✅ Obtener una forma de pago por ID */
+    /**  Obtener una forma de pago por ID */
     async findOne(id: number): Promise<FormaPago> {
         const formaPago = await this.formaPagoRepository.findOne({
             where: { forma_k: id },
@@ -34,12 +35,13 @@ export class FormaPagoService {
         return formaPago;
     }
 
-    /** ✅ Obtener solo las formas de pago activas */
+    /**  Obtener solo las formas de pago activas */
     async getActivePaymentMethods(): Promise<FormaPago[]> {
         return await this.formaPagoRepository.find({ where: { activo: true } });
     }
 
-    /** ✅ Actualizar una forma de pago */
+
+
     async update(id: number, updateFormaPagoDto: UpdateFormaPagoDto): Promise<FormaPago> {
         const formaPago = await this.findOne(id);
         Object.assign(formaPago, updateFormaPagoDto);

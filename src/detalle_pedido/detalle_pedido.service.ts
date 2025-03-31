@@ -34,7 +34,7 @@ export class DetallePedidoService {
   }
 
   async findOne(id: number): Promise<DetallePedido> {
-      const detalle = await this.detallePedidoRepository.findOne({ where: { detalle_k: id }, relations: ['pedido'] });
+      const detalle = await this.detallePedidoRepository.findOne({ where: { detalle_pedido_k: id }, relations: ['pedido'] });
       if (!detalle) {
           throw new NotFoundException(`Detalle de Pedido con ID ${id} no encontrado`);
       }

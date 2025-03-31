@@ -1,34 +1,32 @@
 import { Pedido } from "src/pedidos/entities/pedidos.entity";
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, ManyToMany, JoinTable } from "typeorm";
+import { Usuario } from "src/usuarios/entities/usuario.entity";
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, ManyToMany, JoinTable, CreateDateColumn } from "typeorm";
 
 @Entity()
 export class Comentario {
-    @PrimaryGeneratedColumn('increment')
-    comentario_k: number;
+  @PrimaryGeneratedColumn()
+  comentario_k: number;
 
-    @ManyToOne(() => Comentario, comentario => comentario.respuestas, { nullable: true })
-    comentario_padre: Comentario;
+  @Column({ type: 'text' })
+  texto: string;
 
-    @Column({ length: 45 })
-    tabla: string;
+  @Column({ default: true })
+  estatus: boolean;
 
-    @Column({ length: 45, nullable: true })
-    titulo: string;
+  @CreateDateColumn()
+  creado_en: Date;
 
-    @Column({ type: "text", nullable: true })
-    descripcion: string;
+  @ManyToOne(() => Usuario, usuario => usuario.comentarios, { nullable: true })
+  usuario: Usuario;
 
-    @Column({ length: 45, nullable: true })
-    comentarioscol: string;
+  @ManyToOne(() => Pedido, pedido => pedido.comentario, { nullable: true })
+  pedido: Pedido;
 
-    @Column({ length: 45, nullable: true })
-    email: string;
+  @ManyToOne(() => Comentario, comentario => comentario.respuestas, { nullable: true })
+  comentario_padre: Comentario;
 
     @Column({ length: 100, nullable: true })
     web: string;
-
-    @Column({ type: 'boolean' })
-    estatus: boolean;
 
     @Column({ nullable: true, type: 'boolean' })
     tiene_respuestas: boolean;

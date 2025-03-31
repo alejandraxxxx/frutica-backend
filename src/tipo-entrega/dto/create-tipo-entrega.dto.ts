@@ -1,32 +1,26 @@
-import { IsEnum, IsNumber, IsOptional, IsString, MaxLength, IsDate } from 'class-validator';
+import { IsDateString, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class CreateTipoEntregaDto {
-    @IsString()
-    @MaxLength(20)
-    metodo_entrega: string;
+  @IsEnum(['Entrega a domicilio', 'Pasar a recoger'])
+  metodo_entrega: 'Entrega a domicilio' | 'Pasar a recoger';
 
-    @IsOptional()
-    @IsNumber()
-    direccionId?: number;
+  @IsNumber()
+  direccionId: number;
 
-    @IsOptional()
-    @IsString()
-    @MaxLength(100)
-    repartidor?: string;
+  @IsOptional()
+  @IsString()
+  repartidor?: string;
 
-    @IsDate()
-    fecha_envio: Date;
+  @IsDateString()
+  fecha_estimada_entrega: string;
 
-    @IsDate()
-    fecha_estimada_entrega: Date;
+  @IsString()
+  hora_estimada_entrega: string;
 
-    @IsString()
-    hora_estimada_entrega: string;
+  @IsNumber()
+  costo_envio: number;
 
-    @IsNumber()
-    costo_envio: number;
-
-    @IsEnum(['pendiente', 'en camino', 'entregado', 'cancelado'])
-    estado: string;
+  @IsOptional()
+  @IsEnum(['pendiente', 'en camino', 'entregado', 'cancelado'])
+  estado?: 'pendiente' | 'en camino' | 'entregado' | 'cancelado';
 }
-

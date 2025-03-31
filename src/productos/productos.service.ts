@@ -20,68 +20,78 @@ export class ProductosService {
         private readonly cloudinaryService: CloudinaryService,
     ) { }
 
-    /**
-     * 🛠 Crear un producto y subir imagen a Cloudinary
-     */
-    async create(
-        createProductoDto: CreateProductoDto,
-        user: { id: number; role: string },
-        file?: Express.Multer.File,
-    ): Promise<Producto> {
-        const {
-            categoriaCategoriaK,
-            unidad_venta,
-            peso_estimado,
-            usa_tamano,
-            tamano,
-            ...rest
-        } = createProductoDto;
+  /**
+   * Crear un producto y subir imagen a Cloudinary
+   */
+  async create(
+    createProductoDto: CreateProductoDto,
+    user: { id: number; role: string },
 
-        let categoria = null;
-
-        if (categoriaCategoriaK) {
-            categoria = await this.categoriaRepo.findOne({
-                where: { categoria_k: categoriaCategoriaK },
-            });
-
-            if (!categoria) {
-                throw new NotFoundException('Categoría no encontrada');
-            }
-        }
-
-        // ✅ Subir la imagen si existe
-        let imageUrl = null;
-        if (file) {
-            const uploadResult = await this.cloudinaryService.uploadImage(file);
-            imageUrl = uploadResult.secure_url;
-        }
-
-        const pesosEstimados = {
-            Chico: 3000,
-            Mediano: 5000,
-            Grande: 8000,
-        };
-
-        const pesoEstimado = usa_tamano ? pesosEstimados[tamano] : null;
-        const pesoFinal = !usa_tamano
-            ? unidad_venta === 'kg'
-                ? (peso_estimado ?? 0) * 1000
-                : peso_estimado
-            : null;
-
-        const producto = this.productoRepo.create({
-            ...rest,
-            foto: imageUrl,
-            categoria,
-            usa_tamano,
-            tamano: usa_tamano ? tamano : null,
-            peso_total: usa_tamano ? null : pesoFinal,
-            peso_estimado: usa_tamano ? pesoEstimado : null,
-        });
-
-        return this.productoRepo.save(producto);
+    files?: Express.Multer.File[],
+  ): Promise<Producto> {
+    const {
+      categoriaCategoriaK,
+      unidad_venta,
+      usa_tamano,
+      tamano,
+      peso_estimado,
+      peso_chico,
+      peso_mediano,
+      peso_grande,
+      ...rest
+    } = createProductoDto;
+  
+    let categoria = null;
+    if (categoriaCategoriaK) {
+      categoria = await this.categoriaRepo.findOne({
+        where: { categoria_k: categoriaCategoriaK },
+      });
+      if (!categoria) throw new NotFoundException('Categoría no encontrada');
     }
+  
+    // Subir imágenes a Cloudinary
+    let imageUrls: string[] = [];
+    if (files && files.length > 0) {
+      if (files.length > 10) throw new BadRequestException('Máximo 10 imágenes');
+      const uploads = await this.cloudinaryService.uploadImages(files, 'productos');
+      imageUrls = uploads.map(img => img.secure_url);
+    }
+  
+    let pesoCalculado = null;
+  
 
+    // Si el producto NO usa tamaño, calculamos el peso estimado aquí
+    if (!usa_tamano) {
+      if (peso_estimado == null) {
+        throw new BadRequestException('Debe proporcionar un peso estimado para este producto.');
+      }
+    
+      pesoCalculado = unidad_venta === 'kg'
+        ? peso_estimado * 1000 // Convertimos a gramos si el admin lo da en kg
+        : peso_estimado;
+    }
+    
+    // Si usa tamaño, el peso se calculará dinámicamente en el carrito (según el tamaño seleccionado)
+    
+  
+    const producto = this.productoRepo.create({
+      ...rest,
+      unidad_venta,
+      categoria,
+      foto: imageUrls,
+      usa_tamano,
+      peso_estimado: usa_tamano ? pesoCalculado : peso_estimado,
+      peso_total: usa_tamano ? null : pesoCalculado,
+      peso_chico,
+      peso_mediano,
+      peso_grande,
+    });
+  
+    return this.productoRepo.save(producto);
+  }
+  
+  
+  
 
 
     /**

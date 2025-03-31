@@ -16,12 +16,12 @@ export class UsuariosService {
     private credencialRepository: Repository<Credencial>,
   ) {}
 
-  // 🔹 Obtener todos los usuarios con credenciales
+  // Obtener todos los usuarios con credenciales
   async findAll() {
     return this.usuarioRepository.find({ relations: ['credenciales'] });
   }
 
-  // 🔹 Buscar un usuario por ID
+  // Buscar un usuario por ID
   async findOne(id: number) {
     const usuario = await this.usuarioRepository.findOne({ where: { usuario_k: id }, relations: ['credenciales'] });
     if (!usuario) {
@@ -30,7 +30,7 @@ export class UsuariosService {
     return usuario;
   }
 
-  // 🔹 Actualizar usuario
+  //  Actualizar usuario
   async update(id: number, updateUsuarioDto: Partial<CreateUsuarioDto>) {
     const usuario = await this.findOne(id);
     if (!usuario) {
@@ -41,7 +41,7 @@ export class UsuariosService {
     return this.findOne(id);
   }
 
-  // 🔹 Eliminar usuario
+  // Eliminar usuario
   async remove(id: number) {
     const usuario = await this.findOne(id);
     if (usuario) {
@@ -51,21 +51,21 @@ export class UsuariosService {
     throw new NotFoundException(`Usuario con ID ${id} no encontrado`);
   }
 
-  // 🔹 Crear un usuario y su credencial
+  //Crear un usuario y su credencial
   async create(createUsuarioDto: CreateUsuarioDto): Promise<Usuario> {
     const { nombre, apellido_paterno, apellido_materno, telefono, correo_electronico, contrasena, role } = createUsuarioDto;
 
-    // 1️⃣ Verificar si el correo ya está registrado
+    // 1️Verificar si el correo ya está registrado
     const existeCorreo = await this.credencialRepository.findOne({ where: { email: correo_electronico } });
     if (existeCorreo) {
       throw new ConflictException('El correo ya está registrado');
     }
 
-    // 2️⃣ Hashear la contraseña antes de guardarla
+    //  Hashear la contraseña antes de guardarla
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(contrasena, saltRounds);
 
-    // 3️⃣ Crear usuario en la tabla `usuarios`
+    // 3️Crear usuario en la tabla `usuarios`
     const nuevoUsuario = this.usuarioRepository.create({
       nombre,
       apellido_paterno,
@@ -76,7 +76,7 @@ export class UsuariosService {
 
     await this.usuarioRepository.save(nuevoUsuario);
 
-    // 4️⃣ Crear credencial con email y contraseña hasheada
+    // Crear credencial con email y contraseña hasheada
     const nuevaCredencial = this.credencialRepository.create({
       email: correo_electronico,
       password_hash: hashedPassword,

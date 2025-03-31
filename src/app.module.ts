@@ -55,21 +55,19 @@ import { DatosPersonales } from './datos-personales/entities/datos-personale.ent
     }),
     TypeOrmModule.forRoot({
       type: 'mysql',
-      host: 'localhost', // O la IP del servidor
-      port: 3306,
-      username: 'root', // Usuario de la bd
-      password: '', // Contraseña de MySQL 
-      database: 'frutica-app2', // Nombre de la bd
-      autoLoadEntities: true,
-      entities: [Usuario, DatosPersonales, Categoria, Producto, Pedido, DetallePedido, Factura, FormaPago, Comentario, InventarioMovimiento,
-        Direccion, Venta, Precio,TipoEntrega , DetalleFactura, Notificacion, Credencial ],
-      synchronize: true,
-
+      host: 'localhost', // O la IP del servidor donde está phpMyAdmin
+      port: 3306, // Puerto predeterminado de MySQL
+      username: 'root', // Usuario de la base de datos
+      password: '', // Contraseña de MySQL (deja vacío si no tiene)
+      database: 'frutica-bd', // Nombre de la base de datos en phpMyAdmin
+      entities: [Usuario, Categoria, Producto, Pedido, DetallePedido, Factura, FormaPago, Comentario, InventarioMovimiento,
+        Direccion, Venta, Precio, DetalleFactura, Notificacion, Credencial, Carrito, CarritoItem, Pago, TipoEntrega],
+      synchronize: true, // Solo en desarrollo, en producción usa migraciones
     }),
-    UsuariosModule, DatosPersonalesModule, CategoriaModule, ProductosModule, PedidosModule, DetallePedidoModule,
+    UsuariosModule, CategoriaModule, ProductosModule, PedidosModule, DetallePedidoModule,
     FacturaModule, FormaPagoModule, ComentarioModule, InventarioMovimientoModule, DireccionesModule, VentaModule,
-    PrecioModule , DetalleFacturaModule, NotificacionesModule, AuthModule, CredencialesModule,
-    CloudinaryModule, CarritoModule, CarritoItemModule, PagosModule, StripeModule, TipoEntregaModule, DatosPersonalesModule
+    PrecioModule, DetalleFacturaModule, NotificacionesModule, AuthModule, CredencialesModule,
+    CloudinaryModule, CarritoModule, CarritoItemModule, PagosModule, StripeModule,
   ],
   controllers: [AppController],
   providers: [AppService],

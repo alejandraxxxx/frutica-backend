@@ -148,7 +148,7 @@ export class DireccionesService {
       }
   
       try {
-          console.log(`🔍 Consultando Google Maps con municipio y estado: ${dto.municipio}, ${dto.estado}, ${dto.pais || 'México'}`);
+          console.log(`Consultando Google Maps con municipio y estado: ${dto.municipio}, ${dto.estado}, ${dto.pais || 'México'}`);
   
           const response = await axios.get(`https://maps.googleapis.com/maps/api/geocode/json`, {
               params: {
@@ -157,7 +157,7 @@ export class DireccionesService {
               },
           });
   
-          console.log("📌 Respuesta completa de Google Maps:", JSON.stringify(response.data, null, 2));
+          console.log("Respuesta completa de Google Maps:", JSON.stringify(response.data, null, 2));
   
           if (!response.data.results || response.data.results.length === 0) {
               throw new Error('No se encontró la ubicación en Google Maps.');
@@ -170,7 +170,7 @@ export class DireccionesService {
               maps_url: `https://www.google.com/maps?q=${location.lat},${location.lng}`,
           };
       } catch (error) {
-          console.error("❌ Error en Google Maps API:", error.response?.data || error.message);
+          console.error("Error en Google Maps API:", error.response?.data || error.message);
           throw new Error('Error obteniendo la ubicación de Google Maps');
       }
   }
