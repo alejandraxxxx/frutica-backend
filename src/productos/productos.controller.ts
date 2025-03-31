@@ -1,5 +1,5 @@
-import { Controller, Post, Get, Body, Param, Delete, Patch, Put, UseInterceptors, UploadedFile, UseGuards, Req, ForbiddenException, BadRequestException } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { Controller, Post, Get, Body, Param, Delete, Patch, Put, UseInterceptors, UploadedFile, UseGuards, Req, ForbiddenException, BadRequestException, UploadedFiles } from '@nestjs/common';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { ProductosService } from './productos.service';
 import { CreateProductoDto } from './dto/create-producto.dto';
 import { UpdateProductoDto } from './dto/update-producto.dto';
@@ -17,18 +17,18 @@ export class ProductosController {
   constructor(private readonly productosService: ProductosService) {}
 
   /** ✅ Crear producto (sin imagen por ahora) */
-@Post()
-@Roles(UserRole.ADMIN)
-@UseInterceptors(FileInterceptor('foto'))
-createProduct(
-  @UploadedFile() file: Express.Multer.File,
-  @Body() createProductoDto: CreateProductoDto,
-  @Req() req: RequestWithUser,
-) {
-  const user = req.user;
-  return this.productosService.create(createProductoDto, user, file);
-}
-
+  @Post()
+  @Roles(UserRole.ADMIN)
+  @UseInterceptors(FilesInterceptor('foto', 10)) // ← Hasta 10 archivos
+  async createProduct(
+    @UploadedFiles() files: Express.Multer.File[], // ← Para recibir múltiples archivos
+    @Body() createProductoDto: CreateProductoDto,
+    @Req() req: RequestWithUser,
+  ) {
+    const user = req.user;
+    return this.productosService.create(createProductoDto, user, files);
+  }
+  
   /** ✅ Obtener todos los productos */
   @Get()
   async findAll() {

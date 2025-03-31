@@ -25,6 +25,8 @@ export class ProductosService {
    */
   async create(
     createProductoDto: CreateProductoDto,
+    user: { id: number; role: string },
+
     files?: Express.Multer.File[],
   ): Promise<Producto> {
     const {
@@ -89,10 +91,11 @@ export class ProductosService {
   }
   
   
-   
+  
+
 
     /**
-     *  Obtener todos los productos disponibles
+     * 📋 Obtener todos los productos disponibles
      */
     async findAll() {
         try {
@@ -105,7 +108,7 @@ export class ProductosService {
     }
 
     /**
-     * Buscar un producto por ID
+     * 🔍 Buscar un producto por ID
      */
     async findOne(id: number) {
         const producto = await this.productoRepo.findOne({
@@ -119,7 +122,7 @@ export class ProductosService {
 
 
     /**
-     *  Actualizar datos del producto
+     * ✏️ Actualizar datos del producto
      */
     async update(id: number, updateProductoDto: UpdateProductoDto): Promise<Producto> {
         const producto = await this.findOne(id);
