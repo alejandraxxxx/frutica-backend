@@ -1,16 +1,27 @@
+import { Type } from "class-transformer";
+import { IsNumber } from "class-validator";
 import { Categoria } from "src/categoria/entities/categoria.entity";
 import { DetalleFactura } from "src/detalle-factura/entities/detalle-factura.entity";
 import { InventarioMovimiento } from "src/inventario-movimiento/entities/inventario-movimiento.entity";
 import { Precio } from "src/precio/entities/precio.entity";
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany } from "typeorm";
+import { Venta } from "src/venta/entities/venta.entity";
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, BeforeInsert, BeforeUpdate } from "typeorm";
+import { v4 as uuidv4 } from 'uuid';
 
 @Entity()
 export class Producto {
     @PrimaryGeneratedColumn()
     producto_k: number;
 
-    @Column({ length: 50 })
+    @Column({ length: 50, nullable: true, unique: true })
     codigo_producto: string;
+
+    @BeforeInsert()
+    asignarCodigo() {
+        if (!this.codigo_producto) {
+            this.codigo_producto = `PROD-${uuidv4().split('-')[0].toUpperCase()}`;
+        }
+    }
 
     @Column({ length: 200 })
     nombre: string;
@@ -45,6 +56,21 @@ export class Producto {
     @Column({ type: "boolean", default: true })
     requiere_pesaje: boolean;
 
+    /** ✅ Hook que desactiva el producto si se queda sin existencias */
+    @BeforeInsert()
+    @BeforeUpdate()
+    checkExistencias() {
+        this.activo = this.total_existencias > 0;
+    }
+
+    // ✅ Hook que actualiza automáticamente el campo `activo`
+    @BeforeInsert()
+    @BeforeUpdate()
+    actualizarEstadoActivo() {
+        this.activo = this.total_existencias > 0;
+    }
+
+    
     @Column({ type: "boolean", default: false })
     usa_tamano: boolean;
 
@@ -93,3 +119,4 @@ export class Producto {
     peso_grande: number;
 
 }
+

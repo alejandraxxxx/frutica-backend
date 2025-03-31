@@ -1,4 +1,3 @@
-import { Cliente } from "src/clientes/entities/cliente.entity";
 import { Comentario } from "src/comentario/entities/comentario.entity";
 import { Venta } from "src/venta/entities/venta.entity";
 import { FormaPago } from "src/forma-pago/entities/forma-pago.entity";
@@ -6,7 +5,7 @@ import { Usuario } from "src/usuarios/entities/usuario.entity";
 import { Factura } from "src/factura/entities/factura.entity";
 import { DetallePedido } from "src/detalle_pedido/entities/detalle_pedido.entity";
 
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, ManyToMany, JoinTable } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, ManyToMany, JoinTable, OneToOne, JoinColumn } from "typeorm";
 import { Pago } from "src/pagos/entities/pago.entity";
 import { Direccion } from "src/direccion/entities/direccion.entity";
 import { TipoEntrega } from "src/tipo-entrega/entities/tipo-entrega.entity";
@@ -23,10 +22,10 @@ export class Pedido {
     @Column({ type: "timestamp", default: () => "CURRENT_TIMESTAMP" })
     fecha_pedido: Date;
 
-    @Column({ type: "decimal" })
+    @Column({ type: "decimal", precision: 10, scale: 2 })
     subtotal: number; // Se agregó para separar impuestos y total final
 
-    @Column({ type: "decimal" })
+    @Column({ type: "decimal", precision: 10, scale: 2 })
     total: number;
 
     @Column({ type: 'enum', enum: EstadoPedido, default: EstadoPedido.SOLICITADO })

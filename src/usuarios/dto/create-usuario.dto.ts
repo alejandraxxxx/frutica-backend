@@ -1,4 +1,5 @@
-import { IsString, IsEmail, IsOptional, IsInt, IsBoolean, MinLength, MaxLength, IsNotEmpty, Matches } from 'class-validator';
+import { IsString, IsEmail, IsOptional, IsInt, IsBoolean, MinLength, MaxLength, IsNotEmpty, Matches, IsEnum } from 'class-validator';
+import { UserRole } from '../entities/usuario.entity';
 
 export class CreateUsuarioDto {
     @IsString()
@@ -51,10 +52,9 @@ export class CreateUsuarioDto {
     @IsBoolean()
     login_normal?: boolean;
 
+    @IsEnum(UserRole, { message: 'El rol debe ser "admin" o "user"' })
     @IsOptional()
-    @IsString()
-    @MaxLength(45)
-    rol_ENUM?: string;
+    role?: UserRole;
 
 
     @IsOptional()

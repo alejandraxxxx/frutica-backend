@@ -1,9 +1,11 @@
+import { Type } from 'class-transformer';
 import { IsString, IsOptional, IsInt, IsBoolean, IsNumber, MaxLength, IsEnum } from 'class-validator';
 
 export class CreateProductoDto {
+    @IsOptional()
     @IsString()
     @MaxLength(50)
-    codigo_producto: string;
+    codigo_producto?: string;
 
     @IsString()
     @MaxLength(200)
@@ -22,6 +24,11 @@ export class CreateProductoDto {
     @IsOptional()
     @IsEnum(["kg", "pieza"])
     unidad_venta: "kg" | "pieza"; // Se vende por kg o unidad
+    
+    @Type(() => Number)
+    @IsNumber()
+    precio_estimado: number; // ✅ Precio base del producto
+
 
     @IsOptional()
     @IsNumber()

@@ -1,24 +1,18 @@
-import { IsInt, IsDecimal, IsDate, IsEnum } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsNumber } from 'class-validator';
 
 export class CreateFacturaDto {
-    @IsDate()
-    fecha_emision: Date;
+    @IsNumber()
+    pedidoId: number;
 
-    @IsDecimal()
+    @IsNumber()
+    clienteId: number;
+
+    @IsNumber()
+    formaPagoId: number;
+
+    @IsNumber()
     total: number;
 
     @IsEnum(['emitida', 'pagada', 'cancelada'])
     estado: string;
-
-    @IsInt()
-    pedidoPedidoK: number;
-
-    @IsInt()
-    clienteClientek: number;
-
-    @IsInt()
-    formaPagoFormaK: number;
-
-    @IsInt()
-    empleadoEmpleadoK: number;
 }

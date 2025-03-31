@@ -25,6 +25,22 @@ export class Comentario {
   @ManyToOne(() => Comentario, comentario => comentario.respuestas, { nullable: true })
   comentario_padre: Comentario;
 
-  @OneToMany(() => Comentario, comentario => comentario.comentario_padre)
-  respuestas: Comentario[];
+    @Column({ length: 100, nullable: true })
+    web: string;
+
+    @Column({ nullable: true, type: 'boolean' })
+    tiene_respuestas: boolean;
+
+    @Column({ default: 0 })
+    megusta: number;
+
+    @Column({ type: "timestamp", default: () => "CURRENT_TIMESTAMP" })
+    timestamp: Date;
+
+    @OneToMany(() => Comentario, comentario => comentario.comentario_padre)
+    respuestas: Comentario[];
+
+    @OneToMany(() => Pedido, pedido => pedido.comentario)
+    pedidos: Pedido[];
+
 }

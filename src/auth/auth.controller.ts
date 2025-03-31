@@ -11,6 +11,8 @@ export class AuthController {
     private readonly usuariosService: UsuariosService
   ) { }
 
+
+
   // 🔹 Registro de usuario con email y contraseña
   @Post('registro')
   async registro(@Body() createUsuarioDto: CreateUsuarioDto) {
@@ -28,6 +30,15 @@ export class AuthController {
     };
   }
 
+
+
+  // ✅ 🔹 Endpoint de Login Normal (Email & Contraseña)
+  @Post('login')
+  async login(@Body() body: { email: string; password: string }) {
+    return this.authService.login(body.email, body.password);
+  }
+
+  
   // Login con Google
   @Post('google-login')
   async googleLogin(@Body() userData: CreateUsuarioDto) {

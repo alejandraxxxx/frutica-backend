@@ -1,4 +1,4 @@
-import { Cliente } from "src/clientes/entities/cliente.entity";
+import { DatosPersonales } from "src/datos-personales/entities/datos-personale.entity";
 import { DetalleFactura } from "src/detalle-factura/entities/detalle-factura.entity";
 import { FormaPago } from "src/forma-pago/entities/forma-pago.entity";
 import { Pedido } from "src/pedidos/entities/pedidos.entity";
@@ -13,8 +13,8 @@ export class Factura {
     @ManyToOne(() => Pedido, pedido => pedido.facturas)
     pedido: Pedido;
 
-    @ManyToOne(() => Cliente, cliente => cliente.facturas)
-    cliente: Cliente;
+    @ManyToOne(() => DatosPersonales, cliente => cliente.facturas, { eager: true })
+    cliente: DatosPersonales;
 
     @Column({ type: "timestamp", default: () => "CURRENT_TIMESTAMP" })
     fecha_emision: Date;

@@ -1,6 +1,6 @@
 import { Direccion } from "src/direccion/entities/direccion.entity";
 import { Pedido } from "src/pedidos/entities/pedidos.entity";
-import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
 export class TipoEntrega {

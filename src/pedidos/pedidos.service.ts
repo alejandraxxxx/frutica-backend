@@ -2,10 +2,9 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { CreatePedidoDto } from './dto/create-pedido.dto';
 import { UpdatePedidoDto } from './dto/update-pedido.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Pedido } from './entities/pedidos.entity';
 import { Repository } from 'typeorm';
+import { Pedido } from './entities/pedidos.entity';
 import { Usuario } from 'src/usuarios/entities/usuario.entity';
-import { Cliente } from 'src/clientes/entities/cliente.entity';
 import { FormaPago } from 'src/forma-pago/entities/forma-pago.entity';
 import { TipoEntrega } from 'src/tipo-entrega/entities/tipo-entrega.entity';
 import { Carrito } from 'src/carrito/entities/carrito.entity';

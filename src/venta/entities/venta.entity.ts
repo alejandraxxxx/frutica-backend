@@ -1,6 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from "typeorm";
 import { Usuario } from "src/usuarios/entities/usuario.entity";
-import { Cliente } from "src/clientes/entities/cliente.entity";
 
 @Entity()
 export class Venta {
@@ -9,9 +8,6 @@ export class Venta {
 
     @ManyToOne(() => Usuario, usuario => usuario.ventas, { nullable: true })
     usuario: Usuario;
-
-    @ManyToOne(() => Cliente, cliente => cliente.ventas, { nullable: true })
-    cliente: Cliente;
 
     @Column({ type: "decimal" })
     monto_total: number; // ✅ Se agregó para registrar el total de la venta

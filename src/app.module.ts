@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Usuario } from './usuarios/entities/usuario.entity';
-import { Cliente } from './clientes/entities/cliente.entity';
 import { Categoria } from './categoria//entities/categoria.entity';
 import { Producto } from './productos/entities/productos.entity';
 import { Pedido } from './pedidos/entities/pedidos.entity';
@@ -19,7 +18,6 @@ import { Credencial } from './credenciales/entities/credencial.entity';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsuariosModule } from './usuarios/usuarios.module';
-import { ClientesModule } from './clientes/clientes.module';
 import { CategoriaModule } from './categoria/categoria.module';
 import { ProductosModule } from './productos/productos.module';
 import { PedidosModule } from './pedidos/pedidos.module';
@@ -46,6 +44,8 @@ import { CarritoItem } from './carrito-item/entities/carrito-item.entity';
 import { PagosModule } from './pagos/pagos.module';
 import { StripeModule } from './stripe/stripe.module';
 import { Pago } from './pagos/entities/pago.entity';
+import { DatosPersonalesModule } from './datos-personales/datos-personales.module';
+import { DatosPersonales } from './datos-personales/entities/datos-personale.entity';
 
 
 @Module({
@@ -60,11 +60,11 @@ import { Pago } from './pagos/entities/pago.entity';
       username: 'root', // Usuario de la base de datos
       password: '', // Contraseña de MySQL (deja vacío si no tiene)
       database: 'frutica-bd', // Nombre de la base de datos en phpMyAdmin
-      entities: [Usuario, Cliente, Categoria, Producto, Pedido, DetallePedido, Factura, FormaPago, Comentario, InventarioMovimiento,
+      entities: [Usuario, Categoria, Producto, Pedido, DetallePedido, Factura, FormaPago, Comentario, InventarioMovimiento,
         Direccion, Venta, Precio, DetalleFactura, Notificacion, Credencial, Carrito, CarritoItem, Pago, TipoEntrega],
       synchronize: true, // Solo en desarrollo, en producción usa migraciones
     }),
-    UsuariosModule, ClientesModule, CategoriaModule, ProductosModule, PedidosModule, DetallePedidoModule,
+    UsuariosModule, CategoriaModule, ProductosModule, PedidosModule, DetallePedidoModule,
     FacturaModule, FormaPagoModule, ComentarioModule, InventarioMovimientoModule, DireccionesModule, VentaModule,
     PrecioModule, DetalleFacturaModule, NotificacionesModule, AuthModule, CredencialesModule,
     CloudinaryModule, CarritoModule, CarritoItemModule, PagosModule, StripeModule,
