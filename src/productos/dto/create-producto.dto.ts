@@ -27,13 +27,14 @@ export class CreateProductoDto {
     
     @Type(() => Number)
     @IsNumber()
-    precio_estimado: number; // ✅ Precio base del producto
+    precio_estimado: number; //  Precio base del producto
 
 
-    @IsOptional()
     @IsNumber()
-    peso_estimado?: number; // Agregar este campo al DTO
-
+    @Type(() => Number)
+    @IsOptional()
+    peso_estimado?: number;
+    
     @IsOptional()
     @IsInt()
     total_existencias: number;

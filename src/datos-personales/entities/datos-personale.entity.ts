@@ -62,11 +62,11 @@ export class DatosPersonales {
     usuario: Usuario;
 
 
-    // 📄 Un cliente puede tener muchas facturas
+    // Un cliente puede tener muchas facturas
     @OneToMany(() => Factura, (factura) => factura.cliente)
     facturas: Factura[];
 
-    // 🧾 Un cliente puede tener muchos pedidos
+    //  Un cliente puede tener muchos pedidos
     @OneToMany(() => Pedido, (pedido) => pedido.pedido_k)
     pedidos: Pedido[]
 

@@ -16,7 +16,7 @@ export class Comentario {
   @CreateDateColumn()
   creado_en: Date;
 
-  @ManyToOne(() => Usuario, usuario => usuario.comentarios, { nullable: true })
+  @ManyToOne(() => Usuario, usuario => usuario.credenciales, { nullable: true })
   usuario: Usuario;
 
   @ManyToOne(() => Pedido, pedido => pedido.comentario, { nullable: true })

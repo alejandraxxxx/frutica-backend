@@ -1,4 +1,4 @@
-import { IsEnum, IsOptional } from 'class-validator';
+import { IsEnum, IsOptional, IsString } from 'class-validator';
 import { EstadoPedido } from '../pedido-estado.enum';
 
 export class CambiarEstadoPedidoDto {
@@ -6,5 +6,6 @@ export class CambiarEstadoPedidoDto {
   nuevoEstado: EstadoPedido;
 
   @IsOptional()
+  @IsString()
   comentario?: string;
 }

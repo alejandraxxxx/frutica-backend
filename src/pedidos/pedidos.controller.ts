@@ -1,74 +1,165 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, ParseIntPipe, BadRequestException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+  BadRequestException,
+  Req,
+  ParseIntPipe,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { PedidosService } from './pedidos.service';
 import { CreatePedidoDto } from './dto/create-pedido.dto';
 import { UpdatePedidoDto } from './dto/update-pedido.dto';
-import { Request } from 'express';
-import { Req } from '@nestjs/common';
 import { CambiarEstadoPedidoDto } from './dto/cambiar-estado.dto';
 import { EstadoPedido } from './pedido-estado.enum';
+import { Request } from 'express';
+import { DataSource } from 'typeorm';
 
 @Controller('pedidos')
 export class PedidosController {
-  constructor(private readonly pedidosService: PedidosService) {}
+  constructor(
+    private readonly pedidosService: PedidosService,
+    private readonly dataSource: DataSource,
+  ) {}
 
   @Post()
-  async crearPedido(@Body() createPedidoDto: CreatePedidoDto, @Req() req: Request) {
+  async crearPedido(
+    @Body() createPedidoDto: CreatePedidoDto,
+    @Req() req: Request,
+  ) {
     const usuarioId = createPedidoDto.usuarioId || 1;
-    return this.pedidosService.crearPedido(createPedidoDto, usuarioId); 
+    return this.pedidosService.crearPedido(createPedidoDto, usuarioId);
   }
-  
+
   @Get('ver_pedidos_usuario/:usuarioId')
-  getPedidosPorUsuario(@Param('usuarioId') usuarioId: number) {
-    return this.pedidosService.getPedidosPorUsuario(Number(usuarioId));
+  getPedidosPorUsuario(
+    @Param('usuarioId', ParseIntPipe) usuarioId: number,
+  ) {
+    return this.pedidosService.getPedidosPorUsuario(usuarioId);
   }
-  
-  @Get(':pedidoId')
-  getDetallePedido(@Param('pedidoId') pedidoId: number) {
-    return this.pedidosService.getDetallePedido(Number(pedidoId));
+
+  /**
+   * Filtro por estado: uno o varios separados por coma.
+   * Ej: ?estado=aprobado o ?estado=aprobado,entregado
+   */
+  @Get('por-estado')
+  async obtenerPorEstado(@Query('estado') estadoRaw: string) {
+    console.log(' Query param recibido:', estadoRaw);
+
+    if (!estadoRaw) {
+      throw new BadRequestException('El parámetro "estado" es obligatorio');
+    }
+
+    const estados = estadoRaw.split(',').map(e => e.trim()) as EstadoPedido[];
+
+    const estadosValidos = Object.values(EstadoPedido);
+    const estadosInvalidos = estados.filter(e => !estadosValidos.includes(e));
+
+    if (estadosInvalidos.length > 0) {
+      throw new BadRequestException(
+        `Estados inválidos: ${estadosInvalidos.join(', ')}. Valores válidos: ${estadosValidos.join(', ')}`,
+      );
+    }
+
+    return this.pedidosService.obtenerPedidosPorEstados(estados);
   }
-  
+
+  @Get('filtro')
+async obtenerPorFiltros(
+  @Query('estado') estadoRaw: string,
+  @Query('usuario') usuarioRaw?: string,
+  @Query('desde') desdeRaw?: string,
+  @Query('hasta') hastaRaw?: string,
+  @Query('metodoPago') metodoPagoRaw?: string,
+) {
+  const estados = estadoRaw?.split(',').map(e => e.trim()) as EstadoPedido[] || [];
+  const estadosValidos = Object.values(EstadoPedido);
+  const estadosInvalidos = estados.filter(e => !estadosValidos.includes(e));
+  if (estadosInvalidos.length > 0) {
+    throw new BadRequestException(`Estados inválidos: ${estadosInvalidos.join(', ')}`);
+  }
+
+  const usuarioId = usuarioRaw ? Number(usuarioRaw) : undefined;
+  if (usuarioRaw && isNaN(usuarioId)) {
+    throw new BadRequestException('El parámetro "usuario" debe ser numérico');
+  }
+
+  const desde = desdeRaw ? new Date(desdeRaw) : undefined;
+  const hasta = hastaRaw ? new Date(hastaRaw) : undefined;
+
+  return this.pedidosService.obtenerPedidosPorFiltros({
+    estados,
+    usuarioId,
+    desde,
+    hasta,
+    metodoPago: metodoPagoRaw,
+  });
+}
+
+  /**
+   * Diagnóstico de estructura y datos en la tabla `pedido`
+   */
+  @Get('diagnostico/tabla')
+  async diagnosticarTablaPedido() {
+    try {
+      const tablaInfo = await this.dataSource.query('DESCRIBE pedido');
+      const enumValues = await this.dataSource.query("SHOW COLUMNS FROM pedido WHERE Field = 'estado'");
+      const muestraDatos = await this.dataSource.query("SELECT pedido_k, estado FROM pedido LIMIT 10");
+
+      return { tablaInfo, enumValues, muestraDatos };
+    } catch (error) {
+      console.error('Error al diagnosticar tabla:', error);
+      throw new InternalServerErrorException('Error al diagnosticar tabla de pedidos');
+    }
+  }
 
   @Get()
   findAll() {
     return this.pedidosService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.pedidosService.findOne(+id);
+  /**
+   * Este método DEBE estar al final para evitar conflictos con otras rutas.
+   */
+  @Get(':pedidoId')
+  getDetallePedido(
+    @Param('pedidoId', ParseIntPipe) pedidoId: number,
+  ) {
+    return this.pedidosService.getDetallePedido(pedidoId);
   }
 
   @Get('usuario/:id')
-async obtenerPedidosPorUsuario(@Param('id') id: string) {
-  return this.pedidosService.obtenerPedidosPorUsuario(+id);
-}
-
-@Get('admin')
-async buscarPedidos(
-  @Query('estado') estado?: string,
-  @Query('usuarioId') usuarioId?: string,
-) {
-  if (estado && !Object.values(EstadoPedido).includes(estado as EstadoPedido)) {
-    throw new BadRequestException(`Estado '${estado}' no es válido`);
+  async obtenerPedidosPorUsuario(
+    @Param('id', ParseIntPipe) id: number,
+  ) {
+    return this.pedidosService.obtenerPedidosPorUsuario(id);
   }
 
-  const userIdParsed = usuarioId ? parseInt(usuarioId, 10) : undefined;
-
-  return this.pedidosService.obtenerPedidosFiltrados(estado, userIdParsed);
-}
-
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updatePedidoDto: UpdatePedidoDto) {
-    return this.pedidosService.update(+id, updatePedidoDto);
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updatePedidoDto: UpdatePedidoDto,
+  ) {
+    return this.pedidosService.update(id, updatePedidoDto);
   }
 
   @Patch(':id/cambiar-estado')
-  async cambiarEstado(@Param('id') id: number, @Body() dto: CambiarEstadoPedidoDto) {
-  return this.pedidosService.cambiarEstado(id, dto);
-}
+  async cambiarEstado(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: CambiarEstadoPedidoDto,
+  ) {
+    return this.pedidosService.cambiarEstado(id, dto);
+  }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.pedidosService.remove(+id);
+  remove(
+    @Param('id', ParseIntPipe) id: number,
+  ) {
+    return this.pedidosService.remove(id);
   }
 }

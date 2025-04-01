@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreatePedidoDto } from './dto/create-pedido.dto';
 import { UpdatePedidoDto } from './dto/update-pedido.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -164,7 +164,7 @@ export class PedidosService {
   
   
     async findAll(): Promise<Pedido[]> {
-        return await this.pedidoRepo.find({ relations: ['usuario', 'cliente', 'formaPago', 'tipoEntrega'] });
+        return await this.pedidoRepo.find({ relations: ['usuario', 'formaPago', 'tipoEntrega'] });
     }
 
     async findOne(id: number): Promise<Pedido> {
@@ -216,11 +216,19 @@ export class PedidosService {
       else if (estadoActual === 'con_variaciones') {
         if (['aprobado', 'cancelado'].includes(nuevo)) {
           pedido.estado = nuevo;
+      
+          // guardar comentario si viene
+          if (dto.comentario) {
+            const nuevoComentario = this.comentarioRepo.create({ texto: dto.comentario });
+            await this.comentarioRepo.save(nuevoComentario);
+            pedido.comentario = nuevoComentario;
+          }
+      
         } else {
           throw new BadRequestException('Solo puede aprobarse o cancelarse desde con_variaciones');
         }
       }
-    
+      
       else if (estadoActual === 'aprobado') {
         if (nuevo === 'en_validacion' && metodoPago === 'transferencia') {
           pedido.estado = nuevo;
@@ -237,13 +245,16 @@ export class PedidosService {
     
       else if (estadoActual === 'en_validacion') {
         if (nuevo === 'en_preparacion') {
-          const pago = pedido.pagos?.find(p => p.metodo === 'transferencia');
-          if (!pago || !pago.comprobante_url || pago.estado !== 'en_revision') {
-            throw new BadRequestException('El comprobante no ha sido subido o confirmado');
-          }
-          pedido.estado = nuevo;
+          // ya validas el comprobante
         } else if (nuevo === 'rechazado') {
           pedido.estado = nuevo;
+      
+          if (dto.comentario) {
+            const nuevoComentario = this.comentarioRepo.create({ texto: dto.comentario });
+            await this.comentarioRepo.save(nuevoComentario);
+            pedido.comentario = nuevoComentario;
+          }
+      
         } else {
           throw new BadRequestException('Solo puede avanzar a en_preparacion o ser rechazado');
         }
@@ -302,39 +313,76 @@ export class PedidosService {
       return pedidos;
     }
     
+ // Solo filtra por estado
+// En tu servicio (pedidos.service.ts)
+// En tu servicio (pedidos.service.ts)
+async obtenerPedidosPorEstados(estados: EstadoPedido[]) {
+  return await this.pedidoRepo
+    .createQueryBuilder('pedido')
+    .where('pedido.estado IN (:...estados)', { estados })
+    .leftJoinAndSelect('pedido.usuario', 'usuario')
+    .leftJoinAndSelect('pedido.tipoEntrega', 'tipoEntrega')
+    .leftJoinAndSelect('tipoEntrega.direccion', 'direccion')
+    .leftJoinAndSelect('pedido.formaPago', 'formaPago')
+    .leftJoinAndSelect('pedido.comentario', 'comentario')
+    .leftJoinAndSelect('pedido.pagos', 'pagos')
+    .leftJoinAndSelect('pedido.facturas', 'facturas')
+    .leftJoinAndSelect('pedido.detalles', 'detalles')
+    .leftJoinAndSelect('detalles.producto', 'producto')
+    .orderBy('pedido.fecha_pedido', 'DESC')
+    .getMany();
+}
 
-    //Aun no funcionaaaa
-    async obtenerPedidosFiltrados(estado?: string, usuarioId?: number) {
-      const where: any = {};
-    
-      if (estado && Object.values(EstadoPedido).includes(estado as EstadoPedido)) {
-        where.estado = estado as EstadoPedido;
-      } else if (estado) {
-        throw new BadRequestException(`Estado '${estado}' no es válido`);
-      }
-    
-      if (usuarioId && !isNaN(+usuarioId)) {
-        where.usuario = { usuario_k: +usuarioId };
-      }
-      
-    
-      return this.pedidoRepo.find({
-        where,
-        relations: [
-          'usuario',
-          'tipoEntrega',
-          'tipoEntrega.direccion',
-          'formaPago',
-          'comentario',
-          'pagos',
-          'facturas',
-          'detalles',
-          'detalles.producto',
-        ],
-        order: { fecha_pedido: 'DESC' },
-      });
+async obtenerPedidosPorFiltros(filtro: {
+  estados?: EstadoPedido[],
+  usuarioId?: number,
+  desde?: Date,
+  hasta?: Date,
+  metodoPago?: string,
+}) {
+  try {
+    const qb = this.pedidoRepo
+      .createQueryBuilder('pedido')
+      .leftJoinAndSelect('pedido.usuario', 'usuario')
+      .leftJoinAndSelect('pedido.tipoEntrega', 'tipoEntrega')
+      .leftJoinAndSelect('tipoEntrega.direccion', 'direccion')
+      .leftJoinAndSelect('pedido.formaPago', 'formaPago')
+      .leftJoinAndSelect('pedido.comentario', 'comentario')
+      .leftJoinAndSelect('pedido.pagos', 'pagos')
+      .leftJoinAndSelect('pedido.facturas', 'facturas')
+      .leftJoinAndSelect('pedido.detalles', 'detalles')
+      .leftJoinAndSelect('detalles.producto', 'producto');
+
+    if (filtro.estados?.length) {
+      qb.andWhere('pedido.estado IN (:...estados)', { estados: filtro.estados });
     }
-    
-    
+
+    if (filtro.usuarioId) {
+      qb.andWhere('usuario.usuario_k = :usuarioId', { usuarioId: filtro.usuarioId });
+    }
+
+    if (filtro.desde) {
+      qb.andWhere('pedido.fecha_pedido >= :desde', { desde: filtro.desde });
+    }
+
+    if (filtro.hasta) {
+      qb.andWhere('pedido.fecha_pedido <= :hasta', { hasta: filtro.hasta });
+    }
+
+    if (filtro.metodoPago) {
+      qb.andWhere('formaPago.nombre_forma = :metodo', { metodo: filtro.metodoPago });
+    }
+
+    qb.orderBy('pedido.fecha_pedido', 'DESC');
+
+    const pedidos = await qb.getMany();
+    console.log(`Filtrado completado → ${pedidos.length} resultados`);
+    return pedidos;
+  } catch (error) {
+    console.error('Error al obtener pedidos con filtros:', error);
+    throw new InternalServerErrorException('Error al filtrar pedidos');
+  }
+}
+
 
   }
