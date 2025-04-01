@@ -61,13 +61,13 @@ import { DatosPersonales } from './datos-personales/entities/datos-personale.ent
       password: '', // Contraseña de MySQL (deja vacío si no tiene)
       database: 'frutica-bd', // Nombre de la base de datos en phpMyAdmin
       entities: [Usuario, Categoria, Producto, Pedido, DetallePedido, Factura, FormaPago, Comentario, InventarioMovimiento,
-        Direccion, Venta, Precio, DetalleFactura, Notificacion, Credencial, Carrito, CarritoItem, Pago, TipoEntrega],
+        Direccion, Venta, Precio, DetalleFactura, Notificacion, Credencial, Carrito, CarritoItem, Pago, DatosPersonales, TipoEntrega],
       synchronize: true, // Solo en desarrollo, en producción usa migraciones
     }),
     UsuariosModule, CategoriaModule, ProductosModule, PedidosModule, DetallePedidoModule,
     FacturaModule, FormaPagoModule, ComentarioModule, InventarioMovimientoModule, DireccionesModule, VentaModule,
     PrecioModule, DetalleFacturaModule, NotificacionesModule, AuthModule, CredencialesModule,
-    CloudinaryModule, CarritoModule, CarritoItemModule, PagosModule, StripeModule,
+    CloudinaryModule, CarritoModule, CarritoItemModule, PagosModule, StripeModule, DatosPersonales
   ],
   controllers: [AppController],
   providers: [AppService],

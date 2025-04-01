@@ -16,8 +16,8 @@ import { RequestWithUser } from 'src/common/interfaces/request-with-user.interfa
 export class ProductosController {
   constructor(private readonly productosService: ProductosService) {}
 
-  /** ✅ Crear producto (sin imagen por ahora) */
-  @Post()
+  /** Crear producto (sin imagen por ahora) */
+  @Post('crear')
   @Roles(UserRole.ADMIN)
   @UseInterceptors(FilesInterceptor('foto', 10)) // ← Hasta 10 archivos
   async createProduct(
@@ -29,19 +29,19 @@ export class ProductosController {
     return this.productosService.create(createProductoDto, user, files);
   }
   
-  /** ✅ Obtener todos los productos */
+  /** Obtener todos los productos */
   @Get()
   async findAll() {
     return this.productosService.findAll();
   }
 
-  /** ✅ Obtener producto por ID */
+  /** Obtener producto por ID */
   @Get(':id')
   async findOne(@Param('id') id: string) {
     return this.productosService.findOne(+id);
   }
 
-  /** ✅ Subir o actualizar imagen de producto */
+  /**  Subir o actualizar imagen de producto */
   @Post(':id/upload')
   @Roles(UserRole.ADMIN)
   @UseInterceptors(FileInterceptor('file'))
@@ -62,7 +62,7 @@ export class ProductosController {
     return this.productosService.updateImage(productoId, file);
   }
 
-  /** ✅ Actualizar producto */
+  /** Actualizar producto */
   @Roles(UserRole.ADMIN)
   @Put(':id')
   async update(
@@ -72,7 +72,7 @@ export class ProductosController {
     return this.productosService.update(+id, updateProductoDto);
   }
 
-  /** ✅ Eliminar producto (soft delete) */
+  /**  Eliminar producto (soft delete) */
   @Delete(':id')
   @Roles(UserRole.ADMIN)
   async remove(@Param('id') id: string) {

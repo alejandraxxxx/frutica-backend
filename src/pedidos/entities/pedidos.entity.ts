@@ -19,8 +19,9 @@ export class Pedido {
     @ManyToOne(() => Usuario, usuario => usuario.pedidos)
     usuario: Usuario;
 
-    @Column({ type: "timestamp", default: () => "CURRENT_TIMESTAMP" })
+    @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
     fecha_pedido: Date;
+    
 
     @Column({ type: "decimal", precision: 10, scale: 2 })
     subtotal: number; // Se agregó para separar impuestos y total final
