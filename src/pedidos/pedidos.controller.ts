@@ -19,6 +19,8 @@ import { CambiarEstadoPedidoDto } from './dto/cambiar-estado.dto';
 import { EstadoPedido } from './pedido-estado.enum';
 import { Request } from 'express';
 import { DataSource } from 'typeorm';
+import { UserRole } from 'src/usuarios/entities/usuario.entity';
+import { Roles } from 'src/decorators/roles.decorator';
 
 @Controller('pedidos')
 export class PedidosController {
@@ -28,6 +30,7 @@ export class PedidosController {
   ) {}
 
   @Post()
+   @Roles(UserRole.USER)
   async crearPedido(
     @Body() createPedidoDto: CreatePedidoDto,
     @Req() req: Request,
@@ -37,6 +40,7 @@ export class PedidosController {
   }
 
   @Get('ver_pedidos_usuario/:usuarioId')
+   @Roles(UserRole.ADMIN, UserRole.USER)
   getPedidosPorUsuario(
     @Param('usuarioId', ParseIntPipe) usuarioId: number,
   ) {
@@ -48,6 +52,7 @@ export class PedidosController {
    * Ej: ?estado=aprobado o ?estado=aprobado,entregado
    */
   @Get('por-estado')
+   @Roles(UserRole.ADMIN, UserRole.USER)
   async obtenerPorEstado(@Query('estado') estadoRaw: string) {
     console.log(' Query param recibido:', estadoRaw);
 
@@ -70,6 +75,7 @@ export class PedidosController {
   }
 
   @Get('filtro')
+   @Roles(UserRole.ADMIN)
 async obtenerPorFiltros(
   @Query('estado') estadoRaw: string,
   @Query('usuario') usuarioRaw?: string,
@@ -119,6 +125,7 @@ async obtenerPorFiltros(
   }
 
   @Get()
+   @Roles(UserRole.ADMIN)
   findAll() {
     return this.pedidosService.findAll();
   }
@@ -127,6 +134,7 @@ async obtenerPorFiltros(
    * Este método DEBE estar al final para evitar conflictos con otras rutas.
    */
   @Get(':pedidoId')
+   @Roles(UserRole.ADMIN, UserRole.USER)
   getDetallePedido(
     @Param('pedidoId', ParseIntPipe) pedidoId: number,
   ) {
@@ -134,6 +142,7 @@ async obtenerPorFiltros(
   }
 
   @Get('usuario/:id')
+   @Roles(UserRole.ADMIN, UserRole.USER)
   async obtenerPedidosPorUsuario(
     @Param('id', ParseIntPipe) id: number,
   ) {
@@ -141,6 +150,7 @@ async obtenerPorFiltros(
   }
 
   @Patch(':id')
+   @Roles(UserRole.ADMIN, UserRole.USER)
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updatePedidoDto: UpdatePedidoDto,
@@ -149,6 +159,7 @@ async obtenerPorFiltros(
   }
 
   @Patch(':id/cambiar-estado')
+   @Roles(UserRole.ADMIN, UserRole.USER)
   async cambiarEstado(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: CambiarEstadoPedidoDto,
@@ -157,6 +168,7 @@ async obtenerPorFiltros(
   }
 
   @Delete(':id')
+   @Roles(UserRole.ADMIN)
   remove(
     @Param('id', ParseIntPipe) id: number,
   ) {

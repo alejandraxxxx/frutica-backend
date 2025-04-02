@@ -29,14 +29,17 @@ export class ProductosController {
     return this.productosService.create(createProductoDto, user, files);
   }
   
-  /** Obtener todos los productos */
+  /** Obtener todos los productos  para ambos roles*/
   @Get()
+  @Roles(UserRole.ADMIN, UserRole.USER)
   async findAll() {
     return this.productosService.findAll();
   }
 
   /** Obtener producto por ID */
   @Get(':id')
+  @Roles(UserRole.ADMIN, UserRole.USER)
+  
   async findOne(@Param('id') id: string) {
     return this.productosService.findOne(+id);
   }
@@ -63,8 +66,8 @@ export class ProductosController {
   }
 
   /** Actualizar producto */
-  @Roles(UserRole.ADMIN)
   @Put(':id')
+  @Roles(UserRole.ADMIN)
   async update(
     @Param('id') id: string,
     @Body() updateProductoDto: UpdateProductoDto,

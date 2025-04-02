@@ -4,6 +4,8 @@ import { CreateFacturaDto } from './dto/create-factura.dto';
 import { UpdateFacturaDto } from './dto/update-factura.dto';
 import { isValidRFC } from 'src/utils/rfc-validator';
 import { Response } from 'express';
+import { UserRole } from 'src/usuarios/entities/usuario.entity';
+import { Roles } from 'src/decorators/roles.decorator';
 
 
 @Controller('factura')
@@ -20,32 +22,38 @@ export class FacturaController {
   }
 
   @Get('pdf/:id')
+   @Roles(UserRole.ADMIN)
   generarPDF(@Param('id') id: number, @Res() res: Response) {
     return this.facturaService.generarFacturaDesdeBD(id, res);
   }
   
   
   @Post()
+  @Roles(UserRole.ADMIN, UserRole.USER)
   create(@Body() createFacturaDto: CreateFacturaDto) {
     return this.facturaService.create(createFacturaDto);
   }
 
   @Get()
+  @Roles(UserRole.ADMIN)
   findAll() {
     return this.facturaService.findAll();
   }
 
   @Get(':id')
+  @Roles(UserRole.ADMIN, UserRole.USER)
   findOne(@Param('id') id: string) {
     return this.facturaService.findOne(+id);
   }
 
   @Patch(':id')
+  @Roles(UserRole.ADMIN, UserRole.USER)
   update(@Param('id') id: string, @Body() updateFacturaDto: UpdateFacturaDto) {
     return this.facturaService.update(+id, updateFacturaDto);
   }
 
   @Delete(':id')
+  @Roles(UserRole.ADMIN, UserRole.USER)
   remove(@Param('id') id: string) {
     return this.facturaService.remove(+id);
   }

@@ -7,6 +7,8 @@ import { PagosService } from './pagos.service';
 import { ConfirmPaymentDto } from './dto/confirm-pago.dto';
 import { UpdatePaymentStatusDto } from './dto/update-payment-status.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { UserRole } from 'src/usuarios/entities/usuario.entity';
+import { Roles } from 'src/decorators/roles.decorator';
 
 @Controller('pagos')
 export class PagosController {
@@ -14,6 +16,7 @@ export class PagosController {
 
   // Crear un pago para un pedido
   @Post('create')
+   @Roles(UserRole.USER)
   async createPayment(@Body() createPaymentDto: any) {
     try {
       const { userId, metodo, pedidoId } = createPaymentDto;
@@ -35,6 +38,7 @@ export class PagosController {
   
   //  Confirmar pago con tarjeta
   @Post('confirm-payment')
+   @Roles(UserRole.ADMIN)
   async confirmPayment(@Body() confirmDto: ConfirmPaymentDto) {
     try {
       if (!confirmDto.paymentIntentId) {
@@ -54,6 +58,7 @@ export class PagosController {
 
   // Obtener detalles de un pago
   @Get('detalles/:paymentId')
+   @Roles(UserRole.ADMIN)
   async getPaymentDetails(@Param('paymentId') paymentId: number) {
     try {
       console.log(`Buscando detalles del pago ID=${paymentId}`);
@@ -72,6 +77,7 @@ export class PagosController {
 
   // Obtener pagos por usuario
   @Get('usuario/:userId')
+   @Roles(UserRole.ADMIN, UserRole.USER)
   async getPaymentsByUser(@Param('userId') userId: number) {
     if (!userId) throw new BadRequestException('userId es requerido');
     console.log(`Buscando pagos del usuario ID=${userId}`);
@@ -80,6 +86,7 @@ export class PagosController {
 
   // Actualizar estado de un pago (para el admin)
   @Patch('update-status/:id')
+   @Roles(UserRole.ADMIN)
   async updateStatus(@Param('id') paymentId: number, @Body() updatePaymentStatusDto: UpdatePaymentStatusDto) {
     if (!updatePaymentStatusDto.state) throw new BadRequestException('El estado es obligatorio');
     console.log(`Actualizando estado del pago ID=${paymentId} a ${updatePaymentStatusDto.state}`);
@@ -88,6 +95,7 @@ export class PagosController {
 
   // Subir comprobante de pago (transferencia o efectivo)
   @Post('subir-comprobante/:pagoId')
+   @Roles(UserRole.USER)
   @UseInterceptors(FileInterceptor('file'))
   async subirComprobante(
     @Param('pagoId') pagoId: number,

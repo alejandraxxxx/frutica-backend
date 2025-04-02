@@ -2,39 +2,24 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, Put, BadRequestExcep
 import { CarritoService } from './carrito.service';
 import { CreateCarritoDto } from './dto/create-carrito.dto';
 import { UpdateCarritoDto } from './dto/update-carrito.dto';
-
+import { Roles } from 'src/decorators/roles.decorator';
+import { RolesGuard } from 'src/guards/roles.guard';
+import { UserRole, Usuario } from 'src/usuarios/entities/usuario.entity';
 @Controller('carrito')
 export class CarritoController {
   constructor(private readonly carritoService: CarritoService) {}
 
-  @Delete('vaciar/:usuarioId') // 👈 primero esta
-  async vaciarCarrito(@Param('usuarioId') usuarioIdParam: string) {
-    const usuarioId = parseInt(usuarioIdParam, 10);
-    if (isNaN(usuarioId)) {
-      throw new BadRequestException('ID de usuario inválido');
-    }
-    return this.carritoService.vaciarCarrito(usuarioId);
-  }
-
-  @Delete(':usuarioId/:productoId') // 👈 después esta
-  eliminarProducto(
-    @Param('usuarioId') usuarioId: number,
-    @Param('productoId') productoId: number
-  ) {
-    return this.carritoService.eliminarProducto(
-      Number(usuarioId),
-      Number(productoId)
-    );
-  }
   
     // Obtener el carrito de un usuario
     @Get(':usuarioId')
+    @Roles(UserRole.ADMIN, UserRole.USER)
     async obtenerCarrito(@Param('usuarioId') usuarioId: number) {
         return this.carritoService.obtenerCarrito(usuarioId);
     }
 
     // Agregar producto al carrito
     @Post('agregar')
+    @Roles(UserRole.USER)
     async agregarProducto(@Body() data: CreateCarritoDto) {
         return this.carritoService.agregarProducto(data);
     }
@@ -43,6 +28,7 @@ export class CarritoController {
      *  Editar cantidad de un producto en el carrito
      */
     @Patch(':usuarioId/:productoId')
+    @Roles(UserRole.USER)
     editarProducto(
       @Param('usuarioId') usuarioId: number,
       @Param('productoId') productoId: number,
@@ -63,7 +49,27 @@ export class CarritoController {
       );
     }
 
+    @Delete('vaciar/:usuarioId') //primero esta
+    @Roles(UserRole.USER)
+    async vaciarCarrito(@Param('usuarioId') usuarioIdParam: string) {
+      const usuarioId = parseInt(usuarioIdParam, 10);
+      if (isNaN(usuarioId)) {
+        throw new BadRequestException('ID de usuario inválido');
+      }
+      return this.carritoService.vaciarCarrito(usuarioId);
+    }
+  
+    @Delete(':usuarioId/:productoId') //después esta
+    @Roles(UserRole.USER)
+    eliminarProducto(
+      @Param('usuarioId') usuarioId: number,
+      @Param('productoId') productoId: number
+    ) {
+      return this.carritoService.eliminarProducto(
+        Number(usuarioId),
+        Number(productoId)
+      );
+    }
 
-    
     
 }
