@@ -96,6 +96,7 @@ export class Usuario {
     @OneToMany(() => DatosPersonales, (datos) => datos.usuario)
     datos: DatosPersonales[];
 
+
     
 }
 

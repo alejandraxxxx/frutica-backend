@@ -16,17 +16,10 @@ export class TipoEntregaService {
   ) {}
 
   async create(dto: CreateTipoEntregaDto): Promise<TipoEntrega> {
-    const direccion = await this.direccionRepository.findOne({
-      where: { direccion_k: dto.direccionId },
-    });
-
-    if (!direccion) {
-      throw new NotFoundException(`Dirección con ID ${dto.direccionId} no encontrada`);
-    }
-
+    // Opción ligera: ya no traes la dirección completa
     const tipoEntrega = this.tipoEntregaRepository.create({
       metodo_entrega: dto.metodo_entrega,
-      direccion,
+      direccion: { direccion_k: dto.direccionId } as Direccion, // solo referencia
       repartidor: dto.repartidor ?? null,
       fecha_creacion_envio: new Date(),
       fecha_estimada_entrega: dto.fecha_estimada_entrega,
@@ -34,9 +27,10 @@ export class TipoEntregaService {
       costo_envio: dto.costo_envio,
       estado: dto.estado ?? 'pendiente',
     });
-
+  
     return this.tipoEntregaRepository.save(tipoEntrega);
   }
+  
 
   async findAll(): Promise<TipoEntrega[]> {
     return this.tipoEntregaRepository.find({ relations: ['direccion'] });
@@ -57,26 +51,42 @@ export class TipoEntregaService {
 
   async update(id: number, dto: UpdateTipoEntregaDto): Promise<TipoEntrega> {
     const tipoEntrega = await this.findOne(id);
-
-    if (dto.direccionId) {
+  
+    if (dto.direccionId !== undefined) {
       const direccion = await this.direccionRepository.findOne({
         where: { direccion_k: dto.direccionId },
       });
       if (!direccion) throw new NotFoundException('Dirección no encontrada');
       tipoEntrega.direccion = direccion;
     }
-
-    tipoEntrega.metodo_entrega = dto.metodo_entrega ?? tipoEntrega.metodo_entrega;
-    tipoEntrega.repartidor = dto.repartidor ?? tipoEntrega.repartidor;
-    tipoEntrega.fecha_estimada_entrega = dto.fecha_estimada_entrega
-    ? new Date(dto.fecha_estimada_entrega)
-    : tipoEntrega.fecha_estimada_entrega;
-      tipoEntrega.hora_estimada_entrega = dto.hora_estimada_entrega ?? tipoEntrega.hora_estimada_entrega;
-    tipoEntrega.costo_envio = dto.costo_envio ?? tipoEntrega.costo_envio;
-    tipoEntrega.estado = dto.estado ?? tipoEntrega.estado;
-
+  
+    if (dto.metodo_entrega !== undefined) {
+      tipoEntrega.metodo_entrega = dto.metodo_entrega;
+    }
+  
+    if (dto.repartidor !== undefined) {
+      tipoEntrega.repartidor = dto.repartidor;
+    }
+  
+    if (dto.fecha_estimada_entrega !== undefined) {
+      tipoEntrega.fecha_estimada_entrega = new Date(dto.fecha_estimada_entrega);
+    }
+  
+    if (dto.hora_estimada_entrega !== undefined) {
+      tipoEntrega.hora_estimada_entrega = dto.hora_estimada_entrega;
+    }
+  
+    if (dto.costo_envio !== undefined) {
+      tipoEntrega.costo_envio = dto.costo_envio;
+    }
+  
+    if (dto.estado !== undefined) {
+      tipoEntrega.estado = dto.estado;
+    }
+  
     return this.tipoEntregaRepository.save(tipoEntrega);
   }
+  
 
   async remove(id: number): Promise<void> {
     const tipoEntrega = await this.findOne(id);

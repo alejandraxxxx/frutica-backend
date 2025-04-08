@@ -25,73 +25,72 @@ export class ProductosService {
      */
     async create(
         createProductoDto: CreateProductoDto,
-        user: { id: number; role: string },
-
+        user: { id : number; role?: string },
         files?: Express.Multer.File[],
-    ): Promise<Producto> {
+      ): Promise<Producto> {
+        const userId = user.id;
+      
         const {
-            categoriaCategoriaK,
-            unidad_venta,
-            usa_tamano,
-            tamano,
-            peso_estimado,
-            peso_chico,
-            peso_mediano,
-            peso_grande,
-            ...rest
+          categoriaCategoriaK,
+          unidad_venta,
+          usa_tamano,
+          peso_estimado,
+          peso_chico,
+          peso_mediano,
+          peso_grande,
+          ...rest
         } = createProductoDto;
-
+      
+        // Buscar la categoría
         let categoria = null;
         if (categoriaCategoriaK) {
-            categoria = await this.categoriaRepo.findOne({
-                where: { categoria_k: categoriaCategoriaK },
-            });
-            if (!categoria) throw new NotFoundException('Categoría no encontrada');
+          categoria = await this.categoriaRepo.findOne({
+            where: { categoria_k: categoriaCategoriaK },
+          });
+          if (!categoria) throw new NotFoundException('Categoría no encontrada');
         }
-
+      
         // Subir imágenes a Cloudinary
         let imageUrls: string[] = [];
         if (files && files.length > 0) {
-            if (files.length > 10) throw new BadRequestException('Máximo 10 imágenes');
-            const uploads = await this.cloudinaryService.uploadImages(files, 'productos');
-            imageUrls = uploads.map(img => img.secure_url);
+          if (files.length > 10) throw new BadRequestException('Máximo 10 imágenes');
+          const uploads = await this.cloudinaryService.uploadImages(files, 'productos');
+          imageUrls = uploads.map(img => img.secure_url);
         }
-
-        let pesoCalculado = null;
-
-
-        // Si el producto NO usa tamaño, calculamos el peso estimado aquí
+      
+        // Peso estimado o cálculo según uso de tamaño
+        let pesoCalculado: number | null = null;
+      
         if (!usa_tamano) {
-            if (peso_estimado == null) {
-                throw new BadRequestException('Debe proporcionar un peso estimado para este producto.');
-            }
-
-            pesoCalculado = unidad_venta === 'kg'
-                ? peso_estimado * 1000 // Convertimos a gramos si el admin lo da en kg
-                : peso_estimado;
+          if (peso_estimado == null) {
+            throw new BadRequestException('Debe proporcionar un peso estimado para este producto.');
+          }
+          pesoCalculado = unidad_venta === 'kg'
+            ? peso_estimado * 1000
+            : peso_estimado;
         }
-
-        // Si usa tamaño, el peso se calculará dinámicamente en el carrito (según el tamaño seleccionado)
-
-
+      
+        // Crear el producto
         const producto = this.productoRepo.create({
-            ...rest,
-            unidad_venta,
-            categoria,
-            foto: imageUrls,
-            usa_tamano,
-            peso_estimado: usa_tamano ? pesoCalculado : peso_estimado,
-            peso_total: usa_tamano ? null : pesoCalculado,
-            peso_chico,
-            peso_mediano,
-            peso_grande,
+          ...rest,
+          unidad_venta,
+          categoria,
+          foto: imageUrls,
+          usa_tamano,
+          peso_estimado: usa_tamano ? pesoCalculado : peso_estimado,
+          peso_total: usa_tamano ? null : pesoCalculado,
+          peso_chico,
+          peso_mediano,
+          peso_grande,
+          // usuario_creador: await this.usuarioRepo.findOne({ where: { usuario_k: userId } }), // opcional si tienes relación
         });
-
+      
         return this.productoRepo.save(producto);
-    }
+      }
+      
 
     /**
-     * 📋 Obtener todos los productos disponibles
+     * Obtener todos los productos disponibles
      */
     async findAll() {
         try {
@@ -104,7 +103,7 @@ export class ProductosService {
     }
 
     /**
-     * 🔍 Buscar un producto por ID
+     * Buscar un producto por ID
      */
     async findOne(id: number) {
         const producto = await this.productoRepo.findOne({
@@ -118,7 +117,7 @@ export class ProductosService {
 
 
     /**
-     * ✏️ Actualizar datos del producto
+     *  Actualizar datos del producto
      */
     async update(id: number, updateProductoDto: UpdateProductoDto): Promise<Producto> {
         const producto = await this.findOne(id);
@@ -155,7 +154,7 @@ export class ProductosService {
     }
 
     /**
-     * 🔎 Buscar productos por nombre
+     * Buscar productos por nombre
      */
     async buscar(termino: string) {
         return this.productoRepo.find({

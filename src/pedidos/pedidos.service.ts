@@ -16,6 +16,8 @@ import { EstadoPedido } from './pedido-estado.enum';
 import { CambiarEstadoPedidoDto } from './dto/cambiar-estado.dto';
 import { PagosService } from 'src/pagos/pagos.service';
 import { Pago } from 'src/pagos/entities/pago.entity';
+import { estaDentroDeRadio } from 'src/utils/distancia.util';
+import { UserRole } from 'src/usuarios/entities/usuario.entity';
 
 @Injectable()
 export class PedidosService {
@@ -66,10 +68,42 @@ export class PedidosService {
     if (dto.tipo_entrega === 'Entrega a domicilio') {
       direccion = await this.direccionRepo.findOne({ where: { direccion_k: dto.direccionId } });
       if (!direccion) throw new NotFoundException('Dirección no encontrada');
+    
+      // Validar estado
+      if (direccion.estado.toLowerCase() !== 'oaxaca') {
+        throw new BadRequestException('Solo entregamos dentro del estado de Oaxaca');
+      }
+    
+      // Buscar dirección base de la tienda (admin)
+      const direccionTienda = await this.direccionRepo.findOne({
+        where: {
+          es_publica: true,
+          usuario: { role: UserRole.ADMIN }, // asegúrate que el usuario tenga `role` cargado
+        },
+        relations: ['usuario'],
+      });
+      if (!direccionTienda) {
+        throw new NotFoundException('No se encontró la dirección base de la tienda');
+      }
+    
+      // Validar si está dentro del radio
+      const dentroDeZona = estaDentroDeRadio(
+        Number(direccion.latitud),
+        Number(direccion.longitud),
+        Number(direccionTienda.latitud),
+        Number(direccionTienda.longitud),
+        10 // kilómetros de cobertura
+      );
+    
+      if (!dentroDeZona) {
+        throw new BadRequestException('Tu dirección está fuera del área de entrega');
+      }
+    
     } else {
       direccion = await this.direccionRepo.findOne({ where: { es_publica: true } });
       if (!direccion) throw new NotFoundException('Dirección del local no encontrada');
     }
+    
   
     const tipoEntrega = this.tipoEntregaRepo.create({
       metodo_entrega: dto.tipo_entrega,
@@ -168,7 +202,7 @@ export class PedidosService {
     }
 
     async findOne(id: number): Promise<Pedido> {
-        const pedido = await this.pedidoRepo.findOne({ where: { pedido_k: id }, relations: ['usuario', 'cliente', 'formaPago', 'tipoEntrega'] });
+        const pedido = await this.pedidoRepo.findOne({ where: { pedido_k: id }, relations: ['usuario', 'formaPago', 'tipoEntrega'] });
         if (!pedido) {
             throw new NotFoundException(`Pedido con ID ${id} no encontrado`);
         }

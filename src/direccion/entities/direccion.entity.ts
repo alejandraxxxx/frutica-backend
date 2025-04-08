@@ -37,23 +37,18 @@ export class Direccion {
     @Column({ length: 50, nullable: true })
     localidad: string;
 
-    @Column({ type: "datetime" })
+    @Column({ type: "timestamp", default: () => "CURRENT_TIMESTAMP" })
     fecha_creacion: Date;
 
-    @Column()
-    usuario_creacion: number;
 
     @Column({ type: "timestamp", default: () => "CURRENT_TIMESTAMP", onUpdate: "CURRENT_TIMESTAMP" })
     fecha_actualizacion: Date;
 
-    @Column({ nullable: true })
-    usuario_actualizacion: number;
-
-    @Column()
+    @Column({ default: true })
     activo: boolean;
 
-    @Column({ length: 100 })
-    maps_url: string;
+    @Column({ length: 300 })
+    maps_url: string; 
 
     @Column({ type: "decimal", precision: 9, scale: 6 })
     latitud: number;
@@ -70,5 +65,7 @@ export class Direccion {
     @Column({ default: false })
     es_publica: boolean;
 
-   
+    @Column({ default: false })
+    es_predeterminada: boolean;
+    
 }
