@@ -1,10 +1,10 @@
+// src/common/interfaces/request-with-user.interface.ts
 import { Request } from 'express';
-import { Usuario } from 'src/usuarios/entities/usuario.entity';
 
 export interface RequestWithUser extends Request {
   user: {
     id: number;
-    email: string;
-    role: string;
+    email?: string;
+    role?: string;
   };
 }

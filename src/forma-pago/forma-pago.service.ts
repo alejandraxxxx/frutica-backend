@@ -48,7 +48,7 @@ export class FormaPagoService {
         return await this.formaPagoRepository.save(formaPago);
     }
 
-    /** ✅ Eliminar una forma de pago */
+    /** Eliminar una forma de pago */
     async remove(id: number): Promise<void> {
         const formaPago = await this.findOne(id);
         await this.formaPagoRepository.remove(formaPago);

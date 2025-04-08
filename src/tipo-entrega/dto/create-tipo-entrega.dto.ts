@@ -1,10 +1,20 @@
-import { IsDateString, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import {
+  IsDateString,
+  IsEnum,
+  IsInt,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+} from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class CreateTipoEntregaDto {
   @IsEnum(['Entrega a domicilio', 'Pasar a recoger'])
   metodo_entrega: 'Entrega a domicilio' | 'Pasar a recoger';
 
-  @IsNumber()
+  @Type(() => Number)
+  @IsInt()
   direccionId: number;
 
   @IsOptional()

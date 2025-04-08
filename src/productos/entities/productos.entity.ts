@@ -57,7 +57,7 @@ export class Producto {
     requiere_pesaje: boolean;
 
     /** ✅ Hook que desactiva el producto si se queda sin existencias */
-    @BeforeInsert()
+    /*@BeforeInsert()
     @BeforeUpdate()
     checkExistencias() {
         this.activo = this.total_existencias > 0;
@@ -68,7 +68,7 @@ export class Producto {
     @BeforeUpdate()
     actualizarEstadoActivo() {
         this.activo = this.total_existencias > 0;
-    }
+    }*/
 
     
     @Column({ type: "boolean", default: false })
