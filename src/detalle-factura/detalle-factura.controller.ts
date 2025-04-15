@@ -1,10 +1,13 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
 import { DetalleFacturaService } from './detalle-factura.service';
 import { CreateDetalleFacturaDto } from './dto/create-detalle-factura.dto';
 import { UpdateDetalleFacturaDto } from './dto/update-detalle-factura.dto';
 import { UserRole } from 'src/usuarios/entities/usuario.entity';
 import { Roles } from 'src/decorators/roles.decorator';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { RolesGuard } from 'src/guards/roles.guard';
 
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('detalle-fact')
 export class DetalleFacturaController {
   constructor(private readonly detalleFacturaService: DetalleFacturaService) { }

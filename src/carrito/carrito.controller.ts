@@ -1,10 +1,13 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Put, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Put, BadRequestException, UseGuards, Req } from '@nestjs/common';
 import { CarritoService } from './carrito.service';
 import { CreateCarritoDto } from './dto/create-carrito.dto';
 import { UpdateCarritoDto } from './dto/update-carrito.dto';
 import { Roles } from 'src/decorators/roles.decorator';
 import { RolesGuard } from 'src/guards/roles.guard';
 import { UserRole, Usuario } from 'src/usuarios/entities/usuario.entity';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('carrito')
 export class CarritoController {
   constructor(private readonly carritoService: CarritoService) {}
@@ -22,6 +25,13 @@ export class CarritoController {
     @Roles(UserRole.USER)
     async agregarProducto(@Body() data: CreateCarritoDto) {
         return this.carritoService.agregarProducto(data);
+    }
+
+    @Post('desde-deseos')
+    @Roles(UserRole.USER)
+    async agregarTodosDesdeLista(@Req() req) {
+      const usuarioId = req.user.sub;
+    return this.carritoService.agregarTodosDesdeListaDeseos(usuarioId);
     }
   
     /**

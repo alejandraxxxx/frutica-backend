@@ -93,14 +93,33 @@ export class ProductosService {
      * Obtener todos los productos disponibles
      */
     async findAll() {
-        try {
-            return this.productoRepo.find({
-                where: { activo: true },
-            });
-        } catch (error) {
-            throw new InternalServerErrorException(error);
-        }
-    }
+        const ahora = new Date();
+    
+        const productos = await this.productoRepo.find({
+          where: { activo: true },
+          relations: ['categoria', 'ofertas'],
+        });
+    
+        const productosConOferta = productos.map(producto => {
+          const ofertaActiva = producto.ofertas?.find(oferta =>
+            oferta.activa &&
+            new Date(oferta.inicio) <= ahora &&
+            new Date(oferta.fin) >= ahora
+          );
+    
+          const precioBase = producto.precio_por_kg ?? producto.precio_por_pieza ?? 0;
+          const precioFinal = ofertaActiva ? ofertaActiva.precio_oferta : precioBase;
+    
+          return {
+            ...producto,
+            precio_final: precioFinal,
+            oferta: ofertaActiva ?? null,
+          };
+        });
+    
+        return productosConOferta;
+      }
+    
 
     /**
      * Buscar un producto por ID

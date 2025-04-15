@@ -37,7 +37,7 @@ import { RolesGuard } from 'src/guards/roles.guard';
 
     //Muestra todas las direcciones
     @Get()
-    @UseGuards(JwtAuthGuard, RolesGuard) // 👈 aquí va el RolesGuard explícitamente
+    @UseGuards(JwtAuthGuard, RolesGuard) 
     @Roles(UserRole.ADMIN)
     async findAll() {
       return this.direccionesService.findAll();
