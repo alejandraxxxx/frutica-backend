@@ -18,6 +18,8 @@ import { PagosService } from 'src/pagos/pagos.service';
 import { Pago } from 'src/pagos/entities/pago.entity';
 import { estaDentroDeRadio } from 'src/utils/distancia.util';
 import { UserRole } from 'src/usuarios/entities/usuario.entity';
+import { Producto } from 'src/productos/entities/productos.entity';
+import { In } from 'typeorm';
 
 @Injectable()
 export class PedidosService {
@@ -44,6 +46,8 @@ export class PedidosService {
     @InjectRepository(Pago)
     private pagoRepo: Repository<Pago>,
 
+    @InjectRepository(Producto)
+    private productoRepo: Repository<Producto>,
 
   ) {}
 
@@ -137,17 +141,30 @@ export class PedidosService {
   
     const pedidoGuardado = await this.pedidoRepo.save(pedido);
   
+    const productosIds = carrito.items.map(item => item.producto.producto_k);
+    const productosConOfertas = await this.productoRepo.find({
+      where: { producto_k: In(productosIds) },
+      relations: ['ofertas'],
+    });
+    const productoMap = new Map<number, Producto>();
+    productosConOfertas.forEach(p => productoMap.set(p.producto_k, p));
+    
     for (const item of carrito.items) {
+      const productoConOferta = productoMap.get(item.producto.producto_k)!;
+      const precioUnitario = this.calcularPrecioConOferta(productoConOferta, item.tipo_medida, item.tamano);
+    
       const detalle = this.detallePedidoRepo.create({
         pedido: pedidoGuardado,
-        producto: item.producto,
+        producto: productoConOferta,
         cantidad: item.cantidad,
         tipo_medida: item.tipo_medida,
         peso_seleccionado: item.peso_seleccionado,
-        precio_unitario: item.precio_total / item.cantidad,
+        precio_unitario: precioUnitario,
+        subtotal: item.cantidad * precioUnitario,
       });
       await this.detallePedidoRepo.save(detalle);
     }
+    
   
     await this.carritoItemRepo.remove(carrito.items);
   
@@ -311,7 +328,7 @@ export class PedidosService {
       }
     
       else if (estadoActual === 'entregado' && nuevo === 'finalizado') {
-        // ⚠️ Verificamos que haya un pago antes de finalizar
+        //  Verificamos que haya un pago antes de finalizar
         const pago = pedido.pagos?.[0];
         if (pago && pago.estado !== 'realizado') {
           pago.estado = 'realizado';
@@ -418,5 +435,41 @@ async obtenerPedidosPorFiltros(filtro: {
   }
 }
 
+private calcularPrecioConOferta(
+  producto: Producto,
+  tipo_medida: 'kg' | 'pieza',
+  tamano?: 'Chico' | 'Mediano' | 'Grande'
+): number {
+  const ahora = new Date();
+
+  const ofertaActiva = producto.ofertas?.find(o =>
+    o.activa && new Date(o.inicio) <= ahora && new Date(o.fin) >= ahora
+  );
+
+  if (ofertaActiva) {
+    return ofertaActiva.precio_oferta;
+  }
+
+  if (producto.usa_tamano && tamano) {
+    const peso =
+      tamano === 'Chico' ? producto.peso_chico :
+      tamano === 'Mediano' ? producto.peso_mediano :
+      producto.peso_grande;
+
+    return peso && producto.precio_por_kg
+      ? (peso / 1000) * producto.precio_por_kg
+      : 0;
+  }
+
+  if (tipo_medida === 'kg' && producto.precio_por_kg) {
+    return producto.precio_por_kg;
+  }
+
+  if (tipo_medida === 'pieza' && producto.precio_por_pieza) {
+    return producto.precio_por_pieza;
+  }
+
+  return 0;
+}
 
   }

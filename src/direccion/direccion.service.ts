@@ -131,30 +131,6 @@ export class DireccionesService {
         return { message: 'Dirección eliminada correctamente' };
     }
 
-    /*private async obtenerMunicipioYEstado(cp: string) {
-        const apiKey = this.configService.get<string>('COPOMEX_API_KEY');
-        const url = `https://api.copomex.com/query/info_cp/${cp}?token=${apiKey}`;
-
-        try {
-            const response = await axios.get(url);
-            if (!response.data || !Array.isArray(response.data) || response.data.length === 0) {
-                throw new Error('Código postal no encontrado en COPOMEX');
-            }
-
-            const firstResult = response.data.find((res) => res.response && res.response.municipio && res.response.estado);
-            if (!firstResult) {
-                throw new Error('No se encontraron datos válidos en COPOMEX');
-            }
-
-            return {
-                estado: firstResult.response.estado,
-                municipio: firstResult.response.municipio,
-            };
-        } catch (error) {
-            console.error("Error en la API de COPOMEX:", error.response?.data || error.message);
-            throw new Error('Error consultando la API de COPOMEX');
-        }
-    }*/
         private async obtenerMunicipioYEstado(cp: string) {
           const apiKey = this.configService.get<string>('COPOMEX_API_KEY');
           const url = `https://api.copomex.com/query/info_cp/${cp}?token=${apiKey}`;
@@ -244,7 +220,7 @@ export class DireccionesService {
           direccion.municipio = municipio;
         }
       
-        // 📍 Si el usuario movió el cursor del mapa
+        // Si el usuario movió el cursor del mapa
         if (
           dto.latitud &&
           dto.longitud &&
@@ -257,7 +233,7 @@ export class DireccionesService {
           dto.calle || dto.colonia || dto.cp ||
           dto.municipio || dto.estado || dto.pais
         ) {
-          // 🔁 Si cambió dirección textual pero no se usó el mapa
+          // Si cambió dirección textual pero no se usó el mapa
           const datosParaGeocodificar = {
             calle: direccion.calle,
             colonia: direccion.colonia,

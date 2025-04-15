@@ -1,7 +1,8 @@
 import {
   Controller, Get, Post, Body, Patch, Param, Delete, HttpException,
   HttpStatus, Query, BadRequestException, Req, NotFoundException,
-  UseInterceptors, UploadedFile
+  UseInterceptors, UploadedFile,
+  UseGuards
 } from '@nestjs/common';
 import { PagosService } from './pagos.service';
 import { ConfirmPaymentDto } from './dto/confirm-pago.dto';
@@ -9,7 +10,10 @@ import { UpdatePaymentStatusDto } from './dto/update-payment-status.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UserRole } from 'src/usuarios/entities/usuario.entity';
 import { Roles } from 'src/decorators/roles.decorator';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { RolesGuard } from 'src/guards/roles.guard';
 
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('pagos')
 export class PagosController {
   constructor(private readonly paymentsService: PagosService) {}

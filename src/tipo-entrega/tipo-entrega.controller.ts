@@ -1,10 +1,13 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
 import { TipoEntregaService } from './tipo-entrega.service';
 import { CreateTipoEntregaDto } from './dto/create-tipo-entrega.dto';
 import { UpdateTipoEntregaDto } from './dto/update-tipo-entrega.dto';
 import { UserRole } from 'src/usuarios/entities/usuario.entity';
 import { Roles } from 'src/decorators/roles.decorator';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { RolesGuard } from 'src/guards/roles.guard';
 
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('tipo-entrega')
 export class TipoEntregaController {
   constructor(private readonly tipoEntregaService: TipoEntregaService) {}

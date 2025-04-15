@@ -1,10 +1,13 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
 import { CategoriaService } from './categoria.service';
 import { CreateCategoriaDto } from './dto/create-categoria.dto';
 import { UpdateCategoriaDto } from './dto/update-categoria.dto';
 import { Roles } from 'src/decorators/roles.decorator';
 import { UserRole } from 'src/usuarios/entities/usuario.entity';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { RolesGuard } from 'src/guards/roles.guard';
 
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('categoria')
 export class CategoriaController {
   constructor(private readonly categoriaService: CategoriaService) {}
@@ -18,7 +21,7 @@ export class CategoriaController {
   }
 
   /**
-   * 📦 Obtener todas las categorías activas
+   * Obtener todas las categorías activas
    */
   @Get()
    @Roles(UserRole.ADMIN, UserRole.USER)
@@ -27,7 +30,7 @@ export class CategoriaController {
   }
 
   /**
-   * 🔍 Obtener una categoría por ID
+   * Obtener una categoría por ID
    */
   @Get(':id')
    @Roles(UserRole.ADMIN, UserRole.USER)
@@ -36,7 +39,7 @@ export class CategoriaController {
   }
 
   /**
-   * 📝 Actualizar una categoría
+   * Actualizar una categoría
    */
   @Patch(':id')
    @Roles(UserRole.ADMIN)
