@@ -59,7 +59,7 @@ import { DatosPersonales } from './datos-personales/entities/datos-personale.ent
       port: 3306, // Puerto predeterminado de MySQL
       username: 'root', // Usuario de la base de datos
       password: '', // Contraseña de MySQL (deja vacío si no tiene)
-      database: 'frutica-bd', // Nombre de la base de datos en phpMyAdmin
+      database: 'frutica-app', // Nombre de la base de datos en phpMyAdmin
       entities: [Usuario, Categoria, Producto, Pedido, DetallePedido, Factura, FormaPago, Comentario, InventarioMovimiento,
         Direccion, Venta, Precio, DetalleFactura, Notificacion, Credencial, Carrito, CarritoItem, Pago, DatosPersonales, TipoEntrega],
       synchronize: true, // Solo en desarrollo, en producción usa migraciones
