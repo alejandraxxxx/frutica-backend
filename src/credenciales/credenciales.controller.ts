@@ -1,8 +1,11 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
 import { CredencialesService } from './credenciales.service';
 import { CreateCredencialeDto } from './dto/create-credenciale.dto';
 import { UpdateCredencialeDto } from './dto/update-credenciale.dto';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { RolesGuard } from 'src/guards/roles.guard';
 
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('credenciales')
 export class CredencialesController {
   constructor(private readonly credencialesService: CredencialesService) {}

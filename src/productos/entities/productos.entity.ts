@@ -3,7 +3,8 @@ import { IsNumber } from "class-validator";
 import { Categoria } from "src/categoria/entities/categoria.entity";
 import { DetalleFactura } from "src/detalle-factura/entities/detalle-factura.entity";
 import { InventarioMovimiento } from "src/inventario-movimiento/entities/inventario-movimiento.entity";
-import { Precio } from "src/precio/entities/precio.entity";
+import { ListaDeseos } from "src/lista-deseos/entities/lista-deseo.entity";
+import { Oferta } from "src/oferta/entities/oferta.entity";
 import { Venta } from "src/venta/entities/venta.entity";
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, BeforeInsert, BeforeUpdate } from "typeorm";
 import { v4 as uuidv4 } from 'uuid';
@@ -56,14 +57,14 @@ export class Producto {
     @Column({ type: "boolean", default: true })
     requiere_pesaje: boolean;
 
-    /** ✅ Hook que desactiva el producto si se queda sin existencias */
+    /** Hook que desactiva el producto si se queda sin existencias */
     /*@BeforeInsert()
     @BeforeUpdate()
     checkExistencias() {
         this.activo = this.total_existencias > 0;
     }
 
-    // ✅ Hook que actualiza automáticamente el campo `activo`
+    // Hook que actualiza automáticamente el campo `activo`
     @BeforeInsert()
     @BeforeUpdate()
     actualizarEstadoActivo() {
@@ -73,7 +74,6 @@ export class Producto {
     
     @Column({ type: "boolean", default: false })
     usa_tamano: boolean;
-
 
 
     @Column({ type: "float", nullable: true })
@@ -97,8 +97,6 @@ export class Producto {
     @Column({ default: 0 })
     numero_ventas: number;
 
-    @ManyToOne(() => Precio, precio => precio.productos, { nullable: true })
-    precio: Precio;
 
     @ManyToOne(() => Categoria, categoria => categoria.productos)
     categoria: Categoria;
@@ -117,6 +115,12 @@ export class Producto {
 
     @Column({ type: 'float', nullable: true })
     peso_grande: number;
+
+    @OneToMany(() => Oferta, oferta => oferta.producto)
+    ofertas: Oferta[];
+
+    @OneToMany(() => ListaDeseos, lista => lista.producto)
+    listaDeseos: ListaDeseos[];
 
 }
 

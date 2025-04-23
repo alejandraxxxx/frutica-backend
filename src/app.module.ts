@@ -11,7 +11,6 @@ import { Comentario } from './comentario/entities/comentario.entity';
 import { InventarioMovimiento } from './inventario-movimiento/entities/inventario-movimiento.entity';
 import { Direccion } from './direccion/entities/direccion.entity';
 import { Venta } from './venta/entities/venta.entity';
-import { Precio } from './precio/entities/precio.entity';
 import { DetalleFactura } from './detalle-factura/entities/detalle-factura.entity';
 import { Notificacion } from './notificaciones//entities/notificacion.entity';
 import { Credencial } from './credenciales/entities/credencial.entity';
@@ -28,13 +27,11 @@ import { ComentarioModule } from './comentario/comentario.module';
 import { InventarioMovimientoModule } from './inventario-movimiento/inventario-movimiento.module';
 import { DireccionesModule} from './direccion/direccion.module';
 import { VentaModule } from './venta/venta.module';
-import { PrecioModule } from './precio/precio.module';
 import { DetalleFacturaModule } from './detalle-factura/detalle-factura.module';
 import { NotificacionesModule } from './notificaciones/notificaciones.module';
 import { AuthModule } from './auth/auth.module';
 import { CredencialesModule } from './credenciales/credenciales.module';
 import { ConfigModule } from '@nestjs/config';
-import { TipoEntregaModule } from './tipo-entrega/tipo-entrega.module';
 import { TipoEntrega } from './tipo-entrega/entities/tipo-entrega.entity';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { CarritoModule } from './carrito/carrito.module';
@@ -44,8 +41,11 @@ import { CarritoItem } from './carrito-item/entities/carrito-item.entity';
 import { PagosModule } from './pagos/pagos.module';
 import { StripeModule } from './stripe/stripe.module';
 import { Pago } from './pagos/entities/pago.entity';
-import { DatosPersonalesModule } from './datos-personales/datos-personales.module';
 import { DatosPersonales } from './datos-personales/entities/datos-personale.entity';
+import { OfertaModule } from './oferta/oferta.module';
+import { Oferta } from './oferta/entities/oferta.entity';
+import { ListaDeseosModule } from './lista-deseos/lista-deseos.module';
+import { ListaDeseos } from './lista-deseos/entities/lista-deseo.entity';
 
 
 @Module({
@@ -61,13 +61,12 @@ import { DatosPersonales } from './datos-personales/entities/datos-personale.ent
       password: '', // Contraseña de MySQL (deja vacío si no tiene)
       database: 'frutica-app', // Nombre de la base de datos en phpMyAdmin
       entities: [Usuario, Categoria, Producto, Pedido, DetallePedido, Factura, FormaPago, Comentario, InventarioMovimiento,
-        Direccion, Venta, Precio, DetalleFactura, Notificacion, Credencial, Carrito, CarritoItem, Pago, DatosPersonales, TipoEntrega],
+        Direccion, Venta, DetalleFactura, Notificacion, Credencial, Carrito, CarritoItem, Pago, DatosPersonales, TipoEntrega, Oferta, ListaDeseos],
       synchronize: true, // Solo en desarrollo, en producción usa migraciones
     }),
     UsuariosModule, CategoriaModule, ProductosModule, PedidosModule, DetallePedidoModule,
-    FacturaModule, FormaPagoModule, ComentarioModule, InventarioMovimientoModule, DireccionesModule, VentaModule,
-    PrecioModule, DetalleFacturaModule, NotificacionesModule, AuthModule, CredencialesModule,
-    CloudinaryModule, CarritoModule, CarritoItemModule, PagosModule, StripeModule, DatosPersonales
+    FacturaModule, FormaPagoModule, ComentarioModule, InventarioMovimientoModule, DireccionesModule, VentaModule, DetalleFacturaModule, NotificacionesModule, AuthModule, CredencialesModule,
+    CloudinaryModule, CarritoModule, CarritoItemModule, PagosModule, StripeModule, DatosPersonales, OfertaModule, ListaDeseosModule
   ],
   controllers: [AppController],
   providers: [AppService],

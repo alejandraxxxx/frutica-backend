@@ -11,6 +11,7 @@ import {
   Req,
   ParseIntPipe,
   InternalServerErrorException,
+  UseGuards,
 } from '@nestjs/common';
 import { PedidosService } from './pedidos.service';
 import { CreatePedidoDto } from './dto/create-pedido.dto';
@@ -21,7 +22,11 @@ import { Request } from 'express';
 import { DataSource } from 'typeorm';
 import { UserRole } from 'src/usuarios/entities/usuario.entity';
 import { Roles } from 'src/decorators/roles.decorator';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { RolesGuard } from 'src/guards/roles.guard';
 
+
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('pedidos')
 export class PedidosController {
   constructor(
@@ -159,7 +164,7 @@ async obtenerPorFiltros(
   }
 
   @Patch(':id/cambiar-estado')
-   @Roles(UserRole.ADMIN, UserRole.USER)
+   @Roles(UserRole.ADMIN)
   async cambiarEstado(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: CambiarEstadoPedidoDto,

@@ -1,9 +1,14 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
 import { DatosPersonalesService } from './datos-personales.service';
 import { CreateDatosPersonaleDto } from './dto/create-datos-personale.dto';
 import { UpdateDatosPersonaleDto } from './dto/update-datos-personale.dto';
 import { UserRole } from 'src/usuarios/entities/usuario.entity';
 import { Roles } from 'src/decorators/roles.decorator';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { RolesGuard } from 'src/guards/roles.guard';
+
+
+@UseGuards(JwtAuthGuard, RolesGuard)
 
 @Controller('datos-personales')
 export class DatosPersonalesController {

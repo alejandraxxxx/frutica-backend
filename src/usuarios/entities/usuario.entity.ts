@@ -3,6 +3,7 @@ import { Credencial } from "src/credenciales/entities/credencial.entity";
 import { DatosPersonales } from "src/datos-personales/entities/datos-personale.entity";
 import { Direccion } from "src/direccion/entities/direccion.entity";
 import { InventarioMovimiento } from "src/inventario-movimiento/entities/inventario-movimiento.entity";
+import { ListaDeseos } from "src/lista-deseos/entities/lista-deseo.entity";
 import { Notificacion } from "src/notificaciones/entities/notificacion.entity";
 import { Pago } from "src/pagos/entities/pago.entity";
 import { Pedido } from "src/pedidos/entities/pedidos.entity";
@@ -96,6 +97,8 @@ export class Usuario {
     @OneToMany(() => DatosPersonales, (datos) => datos.usuario)
     datos: DatosPersonales[];
 
+    @OneToMany(() => ListaDeseos, lista => lista.usuario)
+    listaDeseos: ListaDeseos[];
 
     
 }

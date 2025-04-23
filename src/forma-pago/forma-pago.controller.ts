@@ -1,10 +1,13 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
 import { FormaPagoService } from './forma-pago.service';
 import { CreateFormaPagoDto } from './dto/create-forma-pago.dto';
 import { UpdateFormaPagoDto } from './dto/update-forma-pago.dto';
 import { UserRole } from 'src/usuarios/entities/usuario.entity';
 import { Roles } from 'src/decorators/roles.decorator';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { RolesGuard } from 'src/guards/roles.guard';
 
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('forma-pago')
 export class FormaPagoController {
   constructor(private readonly formaPagoService: FormaPagoService) {}

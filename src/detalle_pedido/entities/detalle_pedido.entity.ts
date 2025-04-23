@@ -13,7 +13,7 @@ export class DetallePedido {
     @Column({ type: "decimal" })
     precio_unitario: number;
 
-    @Column({ type: "decimal" })
+    @Column({ type: 'float', default: 0 })
     subtotal: number;
 
     @Column({ length: 45, default: 'pendiente' })
