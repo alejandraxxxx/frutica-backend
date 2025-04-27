@@ -17,40 +17,38 @@ export class AuthService {
         private readonly usuarioRepository: Repository<Usuario>,
 
         private readonly jwtService: JwtService,
-    ) {}
- 
+    ) { }
+
     // ✅ Login con credenciales normales
     async login(email: string, password: string) {
-        // Buscar usuario en la tabla de credenciales
-        const userCredencial = await this.credencialRepository.findOne({ 
-            where: { email }, 
-            relations: ['usuario'] 
+        const userCredencial = await this.credencialRepository.findOne({
+            where: { email },
+            relations: ['usuario']
         });
 
         if (!userCredencial || !userCredencial.usuario) {
             throw new UnauthorizedException('Credenciales incorrectas');
         }
 
-        // Comparar contraseñas
         const passwordMatch = await bcrypt.compare(password, userCredencial.password_hash);
         if (!passwordMatch) {
             throw new UnauthorizedException('Credenciales incorrectas');
         }
 
-        // Obtener el rol del usuario
-        const role = userCredencial.usuario.role;  
+        const role = userCredencial.usuario.role;
 
-        // Generar token de Firebase
         const firebaseToken = await admin.auth().createCustomToken(email);
-        
-        // Generar token JWT local con rol
-        const jwtToken = this.jwtService.sign({
-            email,
-            sub: userCredencial.usuario.usuario_k,
-            role: userCredencial.usuario.role , 
-        });
 
-        // Guardar token en la base de datos
+        // 👇 Aquí agregamos { expiresIn: '8h' }
+        const jwtToken = this.jwtService.sign(
+            {
+                email,
+                sub: userCredencial.usuario.usuario_k,
+                role: userCredencial.usuario.role,
+            },
+            { expiresIn: '8h' }
+        );
+
         userCredencial.token = firebaseToken;
         await this.credencialRepository.save(userCredencial);
 
@@ -58,7 +56,7 @@ export class AuthService {
             message: 'Login exitoso',
             firebaseToken,
             jwtToken,
-            role, 
+            role,
         };
     }
 
@@ -68,9 +66,9 @@ export class AuthService {
             const decodedToken = await admin.auth().verifyIdToken(idToken);
             const { email, name, picture } = decodedToken;
 
-            let user = await this.usuarioRepository.findOne({ 
-                where: { credenciales: { email } }, 
-                relations: ['credenciales'] 
+            let user = await this.usuarioRepository.findOne({
+                where: { credenciales: { email } },
+                relations: ['credenciales']
             });
 
             if (!user) {
@@ -78,7 +76,7 @@ export class AuthService {
                     nombre: name,
                     sexo: "Otro",
                     login_google: true,
-                    role: UserRole.USER, 
+                    role: UserRole.USER,
                     estado_ENUM: 'activo',
                     registrado_desde: 'google',
                     pago_habitual: false,
@@ -90,19 +88,22 @@ export class AuthService {
 
                 const credencial = this.credencialRepository.create({
                     email,
-                    usuario: user, 
-                    password_hash: '', 
+                    usuario: user,
+                    password_hash: '',
                 });
 
                 await this.credencialRepository.save(credencial);
             }
 
-            // Generar token JWT local
-            const jwtToken = this.jwtService.sign({ 
-                email, 
-                sub: user.usuario_k, 
-                role: user.role 
-            });
+            // 👇 También aquí agregamos { expiresIn: '8h' }
+            const jwtToken = this.jwtService.sign(
+                {
+                    email,
+                    sub: user.usuario_k,
+                    role: user.role,
+                },
+                { expiresIn: '8h' }
+            );
 
             return {
                 message: 'Login con Google exitoso',
@@ -117,11 +118,11 @@ export class AuthService {
     // ✅ Registro/Login con Google y almacenamiento en BD
     async handleGoogleLogin(userData: any) {
         const { email, nombre, apellido_paterno, apellido_materno, telefono, sexo } = userData;
-        
+
         try {
-            let user = await this.usuarioRepository.findOne({ 
-                where: { credenciales: { email } }, 
-                relations: ['credenciales'] 
+            let user = await this.usuarioRepository.findOne({
+                where: { credenciales: { email } },
+                relations: ['credenciales']
             });
 
             if (!user) {
@@ -131,8 +132,8 @@ export class AuthService {
                     apellido_materno: apellido_materno || null,
                     telefono: telefono || null,
                     sexo,
-                    login_google: true, 
-                    role: UserRole.USER, 
+                    login_google: true,
+                    role: UserRole.USER,
                     estado_ENUM: 'activo',
                     registrado_desde: 'google',
                     pago_habitual: false,
@@ -144,8 +145,8 @@ export class AuthService {
 
                 const credential = this.credencialRepository.create({
                     email,
-                    usuario: user, 
-                    password_hash: '', 
+                    usuario: user,
+                    password_hash: '',
                 });
 
                 await this.credencialRepository.save(credential);

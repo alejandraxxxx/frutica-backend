@@ -53,7 +53,7 @@ async actualizarMiPerfil(@Req() req: any, @Body() body: any) {
   const usuarioId = req.user.id;
   return this.usuariosService.update(usuarioId, body);
 }
-
+x
   // Actualizar usuario por ID
   @Put(':id')
    @Roles(UserRole.ADMIN)
