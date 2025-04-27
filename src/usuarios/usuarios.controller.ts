@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Put, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Put, UseGuards, Req, NotFoundException } from '@nestjs/common';
 import { UsuariosService } from './usuarios.service';
 import { CreateUsuarioDto } from './dto/create-usuario.dto';
 import { UpdateUsuarioDto } from './dto/update-usuario.dto';
@@ -24,12 +24,35 @@ export class UsuariosController {
     return await this.usuariosService.findAll();
   }
 
+  @Get('mi-perfil')
+  async obtenerMiPerfil(@Req() req: any) {
+    const usuarioId = req.user.id;
+    const usuario = await this.usuariosService.findById(usuarioId);
+
+    if (!usuario) throw new NotFoundException('Usuario no encontrado');
+
+    return {
+      nombre: usuario.nombre,
+      apellido_paterno: usuario.apellido_paterno,
+      apellido_materno: usuario.apellido_materno,
+      telefono: usuario.telefono,
+      sexo: usuario.sexo,
+    };
+  }
+  
   //  Obtener un usuario por ID
   @Get(':id')
    @Roles(UserRole.ADMIN)
   async getUserById(@Param('id') id: number) {
     return await this.usuariosService.findOne(id);
   }
+
+  @Patch('mi-perfil')
+@UseGuards(JwtAuthGuard)
+async actualizarMiPerfil(@Req() req: any, @Body() body: any) {
+  const usuarioId = req.user.id;
+  return this.usuariosService.update(usuarioId, body);
+}
 
   // Actualizar usuario por ID
   @Put(':id')

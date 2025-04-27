@@ -1,4 +1,11 @@
-import { IsEnum, IsNotEmpty, IsNumber } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsNumber, IsString } from 'class-validator';
+
+export enum EstadoFactura {
+    EMITIDA = 'emitida',
+    PAGADA = 'pagada',
+    CANCELADA = 'cancelada',
+}
+
 
 export class CreateFacturaDto {
     @IsNumber()
@@ -13,6 +20,7 @@ export class CreateFacturaDto {
     @IsNumber()
     total: number;
 
-    @IsEnum(['emitida', 'pagada', 'cancelada'])
-    estado: string;
+    @IsEnum(EstadoFactura)
+    estado: EstadoFactura;
+
 }

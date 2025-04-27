@@ -10,7 +10,7 @@ import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { RolesGuard } from 'src/guards/roles.guard';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Controller('factura')
+@Controller('facturas')
 export class FacturaController {
   constructor(private readonly facturaService: FacturaService) { }
 

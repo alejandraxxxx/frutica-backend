@@ -1,9 +1,8 @@
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany } from "typeorm";
 import { DatosPersonales } from "src/datos-personales/entities/datos-personale.entity";
 import { DetalleFactura } from "src/detalle-factura/entities/detalle-factura.entity";
 import { FormaPago } from "src/forma-pago/entities/forma-pago.entity";
 import { Pedido } from "src/pedidos/entities/pedidos.entity";
-import { Usuario } from "src/usuarios/entities/usuario.entity";
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, ManyToMany, JoinTable } from "typeorm";
 
 @Entity()
 export class Factura {

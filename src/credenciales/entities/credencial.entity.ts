@@ -21,4 +21,5 @@ export class Credencial {
 
     @ManyToOne(() => Usuario, usuario => usuario.credenciales)
     usuario: Usuario;
+  length: number;
 }

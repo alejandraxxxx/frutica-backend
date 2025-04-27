@@ -16,13 +16,8 @@ export class UsuariosService {
     private credencialRepository: Repository<Credencial>,
   ) {}
 
-  // Obtener todos los usuarios con credenciales
-  async findAll() {
-    return this.usuarioRepository.find({ relations: ['credenciales'] });
-  }
-
-  // Buscar un usuario por ID
-  async findOne(id: number) {
+  // 🧩 Buscar por ID
+  async findById(id: number) {
     const usuario = await this.usuarioRepository.findOne({ where: { usuario_k: id }, relations: ['credenciales'] });
     if (!usuario) {
       throw new NotFoundException(`Usuario con ID ${id} no encontrado`);
@@ -30,42 +25,25 @@ export class UsuariosService {
     return usuario;
   }
 
-  //  Actualizar usuario
-  async update(id: number, updateUsuarioDto: Partial<CreateUsuarioDto>) {
-    const usuario = await this.findOne(id);
-    if (!usuario) {
-      throw new NotFoundException(`Usuario con ID ${id} no encontrado`);
-    }
-
-    await this.usuarioRepository.update(id, updateUsuarioDto);
-    return this.findOne(id);
+  // 🧩 Buscar por correo (útil para login después)
+  async findByEmail(email: string) {
+    return this.credencialRepository.findOne({ where: { email }, relations: ['usuario'] });
   }
 
-  // Eliminar usuario
-  async remove(id: number) {
-    const usuario = await this.findOne(id);
-    if (usuario) {
-      await this.usuarioRepository.delete(id);
-      return { message: 'Usuario eliminado' };
-    }
-    throw new NotFoundException(`Usuario con ID ${id} no encontrado`);
-  }
-
-  //Crear un usuario y su credencial
+  // 🔥 Crear usuario y credencial
   async create(createUsuarioDto: CreateUsuarioDto): Promise<Usuario> {
     const { nombre, apellido_paterno, apellido_materno, telefono, correo_electronico, contrasena, role } = createUsuarioDto;
 
-    // 1️Verificar si el correo ya está registrado
+    // Validar si el correo ya existe
     const existeCorreo = await this.credencialRepository.findOne({ where: { email: correo_electronico } });
     if (existeCorreo) {
       throw new ConflictException('El correo ya está registrado');
     }
 
-    //  Hashear la contraseña antes de guardarla
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(contrasena, saltRounds);
 
-    // 3️Crear usuario en la tabla `usuarios`
+    // Crear usuario
     const nuevoUsuario = this.usuarioRepository.create({
       nombre,
       apellido_paterno,
@@ -76,15 +54,59 @@ export class UsuariosService {
 
     await this.usuarioRepository.save(nuevoUsuario);
 
-    // Crear credencial con email y contraseña hasheada
+    // Crear credencial
     const nuevaCredencial = this.credencialRepository.create({
       email: correo_electronico,
       password_hash: hashedPassword,
-      usuario: nuevoUsuario, // Se asocia directamente con el usuario
+      usuario: nuevoUsuario,
     });
 
     await this.credencialRepository.save(nuevaCredencial);
 
     return nuevoUsuario;
+  }
+
+  // 🛠 Actualizar datos del usuario
+  async update(id: number, updateUsuarioDto: Partial<CreateUsuarioDto>) {
+    const usuario = await this.findById(id);
+
+    Object.assign(usuario, updateUsuarioDto);
+    return await this.usuarioRepository.save(usuario);
+  }
+
+  // 🛠 Actualizar contraseña
+  async updatePassword(usuarioId: number, newPassword: string) {
+    const usuario = await this.findById(usuarioId);
+
+    if (!usuario.credenciales || usuario.credenciales.length === 0) {
+      throw new NotFoundException('No se encontró la credencial del usuario.');
+    }
+
+    const credencial = usuario.credenciales[0];
+
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+
+    credencial.password_hash = hashedPassword;
+    await this.credencialRepository.save(credencial);
+
+    return { message: 'Contraseña actualizada correctamente' };
+  }
+
+  // 🗑 Eliminar usuario
+  async remove(id: number) {
+    const usuario = await this.findById(id);
+    await this.usuarioRepository.delete(id);
+    return { message: 'Usuario eliminado correctamente' };
+  }
+
+  // 🔎 Obtener todos los usuarios
+  async findAll() {
+    return await this.usuarioRepository.find({ relations: ['credenciales'] });
+  }
+
+  // 🔎 Obtener uno
+  async findOne(id: number) {
+    return this.findById(id);
   }
 }

@@ -6,9 +6,10 @@ import { Usuario } from 'src/usuarios/entities/usuario.entity';
 import { Credencial } from './entities/credencial.entity';
 
 @Module({
+  imports: [
+    TypeOrmModule.forFeature([Credencial, Usuario])
+  ],
   controllers: [CredencialesController],
   providers: [CredencialesService],
-  imports: [TypeOrmModule.forFeature([Credencial])],
-  exports: [TypeOrmModule],
 })
 export class CredencialesModule {}

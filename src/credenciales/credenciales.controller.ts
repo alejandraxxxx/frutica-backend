@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, NotFoundException, BadRequestException } from '@nestjs/common';
 import { CredencialesService } from './credenciales.service';
 import { CreateCredencialeDto } from './dto/create-credenciale.dto';
 import { UpdateCredencialeDto } from './dto/update-credenciale.dto';
@@ -8,7 +8,7 @@ import { RolesGuard } from 'src/guards/roles.guard';
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('credenciales')
 export class CredencialesController {
-  constructor(private readonly credencialesService: CredencialesService) {}
+  constructor(private readonly credencialesService: CredencialesService) { }
 
   @Post()
   create(@Body() createCredencialeDto: CreateCredencialeDto) {
@@ -18,6 +18,34 @@ export class CredencialesController {
   @Get()
   findAll() {
     return this.credencialesService.findAll();
+  }
+
+  @Get('mi-perfil')
+  async obtenerMiPerfil(@Req() req: any) {
+    const usuarioId = req.user.id;
+    const credencial = await this.credencialesService.findByUsuarioId(usuarioId);
+
+    if (!credencial) throw new NotFoundException('Credencial no encontrada');
+
+    return {
+      correo_electronico: credencial.email,
+    };
+  }
+
+  @Patch('actualizar-password')
+  @UseGuards(JwtAuthGuard)
+  async actualizarPassword(
+    @Req() req: any,
+    @Body() body: { currentPassword: string; newPassword: string }
+  ) {
+    const { currentPassword, newPassword } = body;
+    const usuarioId = req.user.id;
+
+    if (!currentPassword || !newPassword) {
+      throw new BadRequestException('Debes proporcionar la contraseña actual y la nueva');
+    }
+
+    return this.credencialesService.actualizarPassword(usuarioId, currentPassword, newPassword);
   }
 
   @Get(':id')
