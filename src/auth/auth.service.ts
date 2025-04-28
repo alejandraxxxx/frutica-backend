@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, ForbiddenException } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
@@ -35,11 +35,8 @@ export class AuthService {
             throw new UnauthorizedException('Credenciales incorrectas');
         }
 
-        const role = userCredencial.usuario.role;
-
         const firebaseToken = await admin.auth().createCustomToken(email);
 
-        // 👇 Aquí agregamos { expiresIn: '8h' }
         const jwtToken = this.jwtService.sign(
             {
                 email,
@@ -56,7 +53,7 @@ export class AuthService {
             message: 'Login exitoso',
             firebaseToken,
             jwtToken,
-            role,
+            role: userCredencial.usuario.role,
         };
     }
 
@@ -64,17 +61,23 @@ export class AuthService {
     async loginWithGoogle(idToken: string) {
         try {
             const decodedToken = await admin.auth().verifyIdToken(idToken);
-            const { email, name, picture } = decodedToken;
+            const { email, name } = decodedToken;
 
-            let user = await this.usuarioRepository.findOne({
-                where: { credenciales: { email } },
-                relations: ['credenciales']
+            if (!email) {
+                throw new UnauthorizedException('El token de Google no contiene un correo válido');
+            }
+
+            // Buscar credencial y usuario
+            let credencial = await this.credencialRepository.findOne({
+                where: { email },
+                relations: ['usuario'],
             });
 
-            if (!user) {
-                user = this.usuarioRepository.create({
-                    nombre: name,
-                    sexo: "Otro",
+            if (!credencial) {
+                // Crear usuario
+                const nuevoUsuario = this.usuarioRepository.create({
+                    nombre: name || 'Sin nombre',
+                    sexo: 'Otro',
                     login_google: true,
                     role: UserRole.USER,
                     estado_ENUM: 'activo',
@@ -84,38 +87,48 @@ export class AuthService {
                     user_verificado: true,
                 });
 
-                user = await this.usuarioRepository.save(user);
+                const usuarioGuardado = await this.usuarioRepository.save(nuevoUsuario);
 
-                const credencial = this.credencialRepository.create({
+                // Crear credencial
+                credencial = this.credencialRepository.create({
                     email,
-                    usuario: user,
+                    usuario: usuarioGuardado,
                     password_hash: '',
                 });
 
-                await this.credencialRepository.save(credencial);
+                credencial = await this.credencialRepository.save(credencial);
             }
 
-            // 👇 También aquí agregamos { expiresIn: '8h' }
+            // 👉 Ahora sí: generar JWT local (8 horas)
             const jwtToken = this.jwtService.sign(
                 {
                     email,
-                    sub: user.usuario_k,
-                    role: user.role,
+                    sub: credencial.usuario.usuario_k,
+                    role: credencial.usuario.role,
                 },
                 { expiresIn: '8h' }
             );
 
+            // 👉 También generar token de Firebase (opcional)
+            const firebaseToken = await admin.auth().createCustomToken(email);
+
+            // 👉 Guardar el token generado en la credencial
+            credencial.token = jwtToken;
+            await this.credencialRepository.save(credencial);
+
             return {
                 message: 'Login con Google exitoso',
-                user,
                 jwtToken,
+                firebaseToken,
             };
         } catch (error) {
-            throw new UnauthorizedException('Token inválido de Google');
+            console.error('❌ Error loginWithGoogle:', error);
+            throw new UnauthorizedException('Error al iniciar sesión con Google');
         }
     }
 
-    // ✅ Registro/Login con Google y almacenamiento en BD
+
+    // ✅ Registro/Login con Google (desde el registro normal)
     async handleGoogleLogin(userData: any) {
         const { email, nombre, apellido_paterno, apellido_materno, telefono, sexo } = userData;
 
@@ -143,13 +156,13 @@ export class AuthService {
 
                 user = await this.usuarioRepository.save(user);
 
-                const credential = this.credencialRepository.create({
+                const credencial = this.credencialRepository.create({
                     email,
                     usuario: user,
                     password_hash: '',
                 });
 
-                await this.credencialRepository.save(credential);
+                await this.credencialRepository.save(credencial);
             } else {
                 if (!user.login_google) {
                     user.login_google = true;
@@ -159,7 +172,7 @@ export class AuthService {
 
             return { message: 'Usuario autenticado con éxito', user };
         } catch (error) {
-            throw new Error("No se pudo guardar el usuario en la base de datos.");
+            throw new Error('No se pudo guardar el usuario en la base de datos.');
         }
     }
 

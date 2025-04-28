@@ -37,12 +37,12 @@ export class AuthController {
     return this.authService.login(body.email, body.password);
   }
 
-  
+
   // Login con Google
   @Post('google-login')
-  async googleLogin(@Body() userData: CreateUsuarioDto) {
-    return await this.authService.handleGoogleLogin(userData);
+  async googleLogin(@Body() body: { idToken: string }) {
+    return this.authService.loginWithGoogle(body.idToken);
   }
-  
- 
+
+
 }

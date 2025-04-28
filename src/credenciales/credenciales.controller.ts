@@ -8,6 +8,7 @@ import { RolesGuard } from 'src/guards/roles.guard';
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('credenciales')
 export class CredencialesController {
+  credencialRepository: any;
   constructor(private readonly credencialesService: CredencialesService) { }
 
   @Post()
@@ -62,4 +63,16 @@ export class CredencialesController {
   remove(@Param('id') id: string) {
     return this.credencialesService.remove(+id);
   }
+
+  @Get('buscar-por-correo/:correo')
+async buscarPorCorreo(@Param('correo') correo: string) {
+  const credencial = await this.credencialRepository.findOne({ where: { email: correo } });
+
+  if (!credencial) {
+    throw new NotFoundException('No se encontró correo');
+  }
+
+  return { message: 'Correo encontrado' };
+}
+
 }

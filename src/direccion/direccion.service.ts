@@ -365,4 +365,22 @@ export class DireccionesService {
         });
       }
       
+
+
+      async obtenerDireccionPorUsuario(usuarioId: number): Promise<Direccion | null> {
+        return await this.direccionRepository.findOne({
+          where: { usuario: { usuario_k: usuarioId } },
+          relations: ['usuario'],
+        });
+      }
+
+      async obtenerDireccionPorCorreo(correo: string) {
+        return await this.direccionRepository
+          .createQueryBuilder('direccion')
+          .leftJoinAndSelect('direccion.usuario', 'usuario')
+          .leftJoinAndSelect('usuario.credenciales', 'credenciales')
+          .where('credenciales.email = :correo', { correo })
+          .getOne();
+      }
+      
     }
