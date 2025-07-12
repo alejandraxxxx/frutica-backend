@@ -27,12 +27,24 @@ async function bootstrap() {
   }));
 
   app.enableCors({
-    origin: 'http://localhost:8100',
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+    origin: ['http://localhost:8100',, 'http://localhost:8101'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
   });
 
+
+  // Habilita el raw body para que Stripe pueda procesar bien el webhook
+  app.use(bodyParser.json({
+    verify: (req: any, res, buf) => {
+      req.rawBody = buf; // Guarda el raw body en la request
+    },
+  }));
+
+  app.setGlobalPrefix('api'); // Esto hará que todas las rutas empiecen con /api
+
+  //Inicia el servidor
   await app.listen(4000);
 }
 bootstrap();

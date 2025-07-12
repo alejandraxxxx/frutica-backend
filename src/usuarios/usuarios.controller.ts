@@ -83,7 +83,6 @@ export class UsuariosController {
 
   // Eliminar usuario por ID
   @Delete(':id')
-  @Roles(UserRole.ADMIN)
   async deleteUser(@Param('id') id: number) {
     return await this.usuariosService.remove(id);
   }

@@ -24,8 +24,8 @@ export class AuthService {
         private readonly emailService: EmailService,
     ) { }
 
-
     // ✅ Login con credenciales normales
+
     async login(email: string, password: string) {
         const userCredencial = await this.credencialRepository.findOne({
             where: { email },
@@ -148,54 +148,6 @@ export class AuthService {
     }
 
 
-
-    //Registro/Login con Google (desde el registro normal)
-    async handleGoogleLogin(userData: any) {
-        const { email, nombre, apellido_paterno, apellido_materno, telefono, sexo } = userData;
-
-        try {
-            let user = await this.usuarioRepository.findOne({
-                where: { credencial: { email } },
-                relations: ['credencial']
-            });
-
-            if (!user) {
-                user = this.usuarioRepository.create({
-                    nombre,
-                    apellido_paterno,
-                    apellido_materno: apellido_materno || null,
-                    telefono: telefono || null,
-                    sexo,
-                    login_google: true,
-                    role: UserRole.USER,
-                    estado_ENUM: 'activo',
-                    registrado_desde: 'google',
-                    pago_habitual: false,
-                    entrega_habitual: false,
-                    user_verificado: true,
-                });
-
-                user = await this.usuarioRepository.save(user);
-
-                const credencial = this.credencialRepository.create({
-                    email,
-                    usuario: user,
-                    password_hash: '',
-                });
-
-                await this.credencialRepository.save(credencial);
-            } else {
-                if (!user.login_google) {
-                    user.login_google = true;
-                    await this.usuarioRepository.save(user);
-                }
-            }
-
-            return { message: 'Usuario autenticado con éxito', user };
-        } catch (error) {
-            throw new Error('No se pudo guardar el usuario en la base de datos.');
-        }
-    }
 
     //Verificar y decodificar un token JWT
     async validateToken(token: string) {

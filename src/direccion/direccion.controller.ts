@@ -3,13 +3,14 @@ import {
   Req,
   NotFoundException,
 } from '@nestjs/common';
-import { DireccionesService } from './direccion.service';
-import { CreateDireccionDto } from './dto/create-direccion.dto';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
-import { RequestWithUser } from 'src/common/interfaces/request-with-user.interface';
+  import { DireccionesService } from './direccion.service';
+  import { CreateDireccionDto } from './dto/create-direccion.dto';
+  import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+  import { RequestWithUser } from 'src/common/interfaces/request-with-user.interface';
 import { Roles } from 'src/decorators/roles.decorator';
 import { UserRole } from 'src/usuarios/entities/usuario.entity';
 import { RolesGuard } from 'src/guards/roles.guard';
+
 
 @Controller('direcciones')
 export class DireccionesController {
@@ -49,6 +50,14 @@ export class DireccionesController {
   async getPredeterminada(@Req() req: RequestWithUser) {
     return this.direccionesService.obtenerPredeterminada(req.user.id);
   }
+    @Get('publica')
+    async getDireccionPublica() {
+      const direcciones = await this.direccionesService.findPublicas();
+      if (!direcciones.length) {
+        throw new NotFoundException('No se encontró dirección pública');
+      }
+      return direcciones[0]; // Solo mandamos la primera pública
+    }
 
   // Marcar como predeterminada
   @Patch(':id/marcar-predeterminada')

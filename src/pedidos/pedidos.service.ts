@@ -122,7 +122,7 @@ private buildOrdersUrl(pedidoId?: number): string {
         Number(direccion.longitud),
         Number(direccionTienda.latitud),
         Number(direccionTienda.longitud),
-        10 // kilómetros de cobertura
+        50 // kilómetros de cobertura
       );
 
       if (!dentroDeZona) {
@@ -238,10 +238,23 @@ private buildOrdersUrl(pedidoId?: number): string {
 
     return pedido;
   }
-
-
-  async findAll(): Promise<Pedido[]> {
-    return await this.pedidoRepo.find({ relations: ['usuario', 'formaPago', 'tipoEntrega'] });
+  
+  
+  // pedidos.service.ts
+  async findAll() {
+    return await this.pedidoRepo.find({
+      relations: [
+        'usuario',
+        'formaPago',
+        'tipoEntrega',
+        'pagos',
+        'comentario',
+        'facturas',
+        'detalles',
+        'detalles.producto',
+      ],
+      order: { fecha_pedido: 'DESC' },
+    });
   }
 
   async findOne(id: number): Promise<Pedido> {
@@ -263,116 +276,113 @@ private buildOrdersUrl(pedidoId?: number): string {
     await this.pedidoRepo.remove(pedido);
   }
 
-  // funcion cambiar de estado
-  async cambiarEstado(pedidoId: number, dto: CambiarEstadoPedidoDto) {
-    const pedido = await this.pedidoRepo.findOne({
-      where: { pedido_k: pedidoId },
-      relations: ['usuario',
-        'usuario.credencial', // viene el email
-        'tipoEntrega',
-        'formaPago',
-        'pagos',],
-    });
-
-    if (!pedido) throw new NotFoundException('Pedido no encontrado');
-
-    const estadoActual = pedido.estado;
-    const metodoPago = pedido.formaPago?.nombre_forma;
-    const tipoEntrega = pedido.tipoEntrega?.metodo_entrega;
-    const nuevo = dto.nuevoEstado;
-
-    // Validaciones por estado actual
-    if (estadoActual === 'solicitado') {
-      if (nuevo === 'aprobado' && ['transferencia', 'tarjeta'].includes(metodoPago)) {
-        pedido.estado = nuevo;
-      } else if (nuevo === 'en_preparacion' && metodoPago === 'efectivo') {
-        pedido.estado = nuevo;
-      } else if (nuevo === 'con_variaciones') {
-        pedido.estado = nuevo;
-      } else {
-        throw new BadRequestException('Transición inválida desde solicitado');
-      }
-    }
-
-    else if (estadoActual === 'con_variaciones') {
-      if (['aprobado', 'cancelado'].includes(nuevo)) {
-        pedido.estado = nuevo;
-
-        // guardar comentario si viene
-        if (dto.comentario) {
-          const nuevoComentario = this.comentarioRepo.create({ texto: dto.comentario });
-          await this.comentarioRepo.save(nuevoComentario);
-          pedido.comentario = nuevoComentario;
+    // funcion cambiar de estado
+    async cambiarEstado(pedidoId: number, dto: CambiarEstadoPedidoDto) {
+      const pedido = await this.pedidoRepo.findOne({
+        where: { pedido_k: pedidoId },
+        relations: ['usuario',
+        'usuario.credencial','tipoEntrega', 'formaPago', 'pagos'],
+      });
+    
+      if (!pedido) throw new NotFoundException('Pedido no encontrado');
+    
+      const estadoActual = pedido.estado;
+      const metodoPago = pedido.formaPago?.nombre_forma;
+      const tipoEntrega = pedido.tipoEntrega?.metodo_entrega;
+      const nuevo = dto.nuevoEstado;
+    
+      // Validaciones por estado actual
+      if (estadoActual === 'solicitado') {
+        if (nuevo === 'aprobado' && ['transferencia', 'tarjeta'].includes(metodoPago)) {
+          pedido.estado = nuevo;
+        } else if (nuevo === 'en_preparacion' && metodoPago === 'efectivo') {
+          pedido.estado = nuevo;
+        } else if (nuevo === 'con_variaciones') {
+          pedido.estado = nuevo;
+        } else {
+          throw new BadRequestException('Transición inválida desde solicitado');
         }
-
-      } else {
-        throw new BadRequestException('Solo puede aprobarse o cancelarse desde con_variaciones');
       }
-    }
-
-    else if (estadoActual === 'aprobado') {
-      if (nuevo === 'en_validacion' && metodoPago === 'transferencia') {
+    
+      else if (estadoActual === 'con_variaciones') {
+        if (['aprobado', 'cancelado'].includes(nuevo)) {
+          pedido.estado = nuevo;
+      
+          // guardar comentario si viene
+          if (dto.comentario) {
+            const nuevoComentario = this.comentarioRepo.create({ texto: dto.comentario });
+            await this.comentarioRepo.save(nuevoComentario);
+            pedido.comentario = nuevoComentario;
+          }
+      
+        } else {
+          throw new BadRequestException('Solo puede aprobarse o cancelarse desde con_variaciones');
+        }
+      }
+      
+      else if (estadoActual === 'aprobado') {
+        if (nuevo === 'en_validacion' && metodoPago === 'transferencia') {
+          pedido.estado = nuevo;
+        } else if (nuevo === 'en_preparacion' && metodoPago === 'tarjeta') {
+          const pago = pedido.pagos?.find(p => p.metodo === 'tarjeta');
+          if (!pago || pago.estado !== 'realizado') {
+            throw new BadRequestException('El pago con tarjeta no ha sido confirmado');
+          }
+          pedido.estado = nuevo;
+        } else {
+          throw new BadRequestException('Transición no permitida desde aprobado');
+        }
+      }
+    
+      else if (estadoActual === 'en_validacion') {
+        if (nuevo === 'en_preparacion') {
+          // ya validas el comprobante
+        } else if (nuevo === 'rechazado') {
+          pedido.estado = nuevo;
+      
+          if (dto.comentario) {
+            const nuevoComentario = this.comentarioRepo.create({ texto: dto.comentario });
+            await this.comentarioRepo.save(nuevoComentario);
+            pedido.comentario = nuevoComentario;
+          }
+      
+        } else {
+          throw new BadRequestException('Solo puede avanzar a en_preparacion o ser rechazado');
+        }
+      }
+    
+      else if (estadoActual === 'en_preparacion') {
+        if (nuevo === 'cancelado') {
+          pedido.estado = EstadoPedido.CANCELADO;
+        } else if (tipoEntrega === 'Entrega a domicilio' && nuevo === 'en_camino') {
+          pedido.estado = nuevo;
+        } else if (tipoEntrega === 'Pasar a recoger' && nuevo === 'entregado') {
+          pedido.estado = nuevo;
+        } else {
+          throw new BadRequestException('Transición inválida desde en_preparacion');
+        }
+      }
+    
+      else if (estadoActual === 'en_camino' && nuevo === 'entregado') {
         pedido.estado = nuevo;
-      } else if (nuevo === 'en_preparacion' && metodoPago === 'tarjeta') {
-        const pago = pedido.pagos?.find(p => p.metodo === 'tarjeta');
-        if (!pago || pago.estado !== 'realizado') {
-          throw new BadRequestException('El pago con tarjeta no ha sido confirmado');
+      }
+    
+      else if (estadoActual === 'entregado' && nuevo === 'finalizado') {
+        //  Verificamos que haya un pago antes de finalizar
+        const pago = pedido.pagos?.[0];
+        if (pago && pago.estado !== 'realizado') {
+          pago.estado = 'realizado';
+          pago.fecha_pago = new Date();
+          await this.pagoRepo.save(pago);
         }
         pedido.estado = nuevo;
-      } else {
-        throw new BadRequestException('Transición no permitida desde aprobado');
       }
-    }
-
-    else if (estadoActual === 'en_validacion') {
-      if (nuevo === 'en_preparacion') {
-        // ya validas el comprobante
-      } else if (nuevo === 'rechazado') {
-        pedido.estado = nuevo;
-
-        if (dto.comentario) {
-          const nuevoComentario = this.comentarioRepo.create({ texto: dto.comentario });
-          await this.comentarioRepo.save(nuevoComentario);
-          pedido.comentario = nuevoComentario;
-        }
-
-      } else {
-        throw new BadRequestException('Solo puede avanzar a en_preparacion o ser rechazado');
+    
+      else {
+        throw new BadRequestException('Transición de estado no válida');
       }
-    }
-
-    else if (estadoActual === 'en_preparacion') {
-      if (nuevo === 'cancelado') {
-        pedido.estado = EstadoPedido.CANCELADO;
-      } else if (tipoEntrega === 'Entrega a domicilio' && nuevo === 'en_camino') {
-        pedido.estado = nuevo;
-      } else if (tipoEntrega === 'Pasar a recoger' && nuevo === 'entregado') {
-        pedido.estado = nuevo;
-      } else {
-        throw new BadRequestException('Transición inválida desde en_preparacion');
-      }
-    }
-
-    else if (estadoActual === 'en_camino' && nuevo === 'entregado') {
-      pedido.estado = nuevo;
-    }
-
-    else if (estadoActual === 'entregado' && nuevo === 'finalizado') {
-      //  Verificamos que haya un pago antes de finalizar
-      const pago = pedido.pagos?.[0];
-      if (pago && pago.estado !== 'realizado') {
-        pago.estado = 'realizado';
-        pago.fecha_pago = new Date();
-        await this.pagoRepo.save(pago);
-      }
-      pedido.estado = nuevo;
-    }
-
-    else {
-      throw new BadRequestException('Transición de estado no válida');
-    }
-
-    //return await this.pedidoRepo.save(pedido);
+    
+       //return await this.pedidoRepo.save(pedido);
     // ¿Hubo cambio real?
     const huboCambio = estadoActual !== pedido.estado;
 
@@ -403,45 +413,45 @@ private buildOrdersUrl(pedidoId?: number): string {
     return actualizado;
 
   }
-
-  async obtenerPedidosPorUsuario(usuarioId: number) {
-    const pedidos = await this.pedidoRepo.find({
-      where: { usuario: { usuario_k: usuarioId } },
-      relations: [
-        'usuario',
-        'tipoEntrega',
-        'formaPago',
-        'comentario',
-        'pagos',
-        'facturas',
-        'detalles',
-        'detalles.producto',
-      ],
-      order: { fecha_pedido: 'DESC' },
-    });
-
-    return pedidos;
-  }
-
-  // Solo filtra por estado
-  // En tu servicio (pedidos.service.ts)
-  // En tu servicio (pedidos.service.ts)
-  async obtenerPedidosPorEstados(estados: EstadoPedido[]) {
-    return await this.pedidoRepo
-      .createQueryBuilder('pedido')
-      .where('pedido.estado IN (:...estados)', { estados })
-      .leftJoinAndSelect('pedido.usuario', 'usuario')
-      .leftJoinAndSelect('pedido.tipoEntrega', 'tipoEntrega')
-      .leftJoinAndSelect('tipoEntrega.direccion', 'direccion')
-      .leftJoinAndSelect('pedido.formaPago', 'formaPago')
-      .leftJoinAndSelect('pedido.comentario', 'comentario')
-      .leftJoinAndSelect('pedido.pagos', 'pagos')
-      .leftJoinAndSelect('pedido.facturas', 'facturas')
-      .leftJoinAndSelect('pedido.detalles', 'detalles')
-      .leftJoinAndSelect('detalles.producto', 'producto')
-      .orderBy('pedido.fecha_pedido', 'DESC')
-      .getMany();
-  }
+    
+    async obtenerPedidosPorUsuario(usuarioId: number) {
+      const pedidos = await this.pedidoRepo.find({
+        where: { usuario: { usuario_k: usuarioId } },
+        relations: [
+          'usuario',
+          'tipoEntrega',
+          'formaPago',
+          'comentario',
+          'pagos',
+          'facturas',
+          'detalles',
+          'detalles.producto',
+        ],
+        order: { fecha_pedido: 'DESC' },
+      });
+    
+      return pedidos;
+    }
+    
+ // Solo filtra por estado
+// En tu servicio (pedidos.service.ts)
+// En tu servicio (pedidos.service.ts)
+async obtenerPedidosPorEstados(estados: EstadoPedido[]) {
+  return await this.pedidoRepo
+    .createQueryBuilder('pedido')
+    .where('pedido.estado IN (:...estados)', { estados })
+    .leftJoinAndSelect('pedido.usuario', 'usuario')
+    .leftJoinAndSelect('pedido.tipoEntrega', 'tipoEntrega')
+    .leftJoinAndSelect('tipoEntrega.direccion', 'direccion')
+    .leftJoinAndSelect('pedido.formaPago', 'formaPago')
+    .leftJoinAndSelect('pedido.comentario', 'comentario')
+    .leftJoinAndSelect('pedido.pagos', 'pagos')
+    .leftJoinAndSelect('pedido.facturas', 'facturas')
+    .leftJoinAndSelect('pedido.detalles', 'detalles')
+    .leftJoinAndSelect('detalles.producto', 'producto')
+    .orderBy('pedido.fecha_pedido', 'DESC')
+    .getMany();
+}
 
   async obtenerPedidosPorFiltros(filtro: {
     estados?: EstadoPedido[],

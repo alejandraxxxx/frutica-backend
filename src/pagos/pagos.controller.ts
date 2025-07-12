@@ -42,7 +42,7 @@ export class PagosController {
   
   //  Confirmar pago con tarjeta
   @Post('confirm-payment')
-   @Roles(UserRole.ADMIN)
+   @Roles(UserRole.ADMIN, UserRole.USER)
   async confirmPayment(@Body() confirmDto: ConfirmPaymentDto) {
     try {
       if (!confirmDto.paymentIntentId) {
@@ -59,7 +59,27 @@ export class PagosController {
       );
     }
   }
+  // Subir comprobante de pago (transferencia o efectivo)
+  @Post('subir-comprobante/:pagoId')
+   @Roles(UserRole.USER)
+  @UseInterceptors(FileInterceptor('file'))
+  async subirComprobante(
+    @Param('pagoId') pagoId: number,
+    @UploadedFile() file: Express.Multer.File
+  ) {
+    try {
+      console.log(`Subiendo comprobante para el pago ID=${pagoId}`);
+      if (!file) throw new BadRequestException('El archivo es obligatorio');
 
+      return this.paymentsService.uploadComprobante(pagoId, file);
+    } catch (error) {
+      console.error('Error al subir el comprobante:', error);
+      throw new HttpException(
+        { status: HttpStatus.BAD_REQUEST, error: 'Error al subir el comprobante', details: error.message },
+        HttpStatus.BAD_REQUEST
+      );
+    }
+  }
   // Obtener detalles de un pago
   @Get('detalles/:paymentId')
    @Roles(UserRole.ADMIN)
@@ -97,25 +117,5 @@ export class PagosController {
     await this.paymentsService.updatePaymentStatus(paymentId, updatePaymentStatusDto.state);
   }
 
-  // Subir comprobante de pago (transferencia o efectivo)
-  @Post('subir-comprobante/:pagoId')
-   @Roles(UserRole.USER)
-  @UseInterceptors(FileInterceptor('file'))
-  async subirComprobante(
-    @Param('pagoId') pagoId: number,
-    @UploadedFile() file: Express.Multer.File
-  ) {
-    try {
-      console.log(`Subiendo comprobante para el pago ID=${pagoId}`);
-      if (!file) throw new BadRequestException('El archivo es obligatorio');
 
-      return this.paymentsService.uploadComprobante(pagoId, file);
-    } catch (error) {
-      console.error('Error al subir el comprobante:', error);
-      throw new HttpException(
-        { status: HttpStatus.BAD_REQUEST, error: 'Error al subir el comprobante', details: error.message },
-        HttpStatus.BAD_REQUEST
-      );
-    }
-  }
 }
