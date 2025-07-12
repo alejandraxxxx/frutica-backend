@@ -23,13 +23,19 @@ export class FormaPagoController {
   findAll() {
     return this.formaPagoService.findAll();
   }
+  @Get('activos')
+  @Roles(UserRole.ADMIN, UserRole.USER)
+   async getActivePayments() {
+   return await this.formaPagoService.getActivePaymentMethods();
+   }
+
 
   @Get(':id')
    @Roles(UserRole.ADMIN, UserRole.USER)
   findOne(@Param('id') id: string) {
     return this.formaPagoService.findOne(+id);
   }
-
+ 
   @Patch(':id')
    @Roles(UserRole.ADMIN)
   update(@Param('id') id: string, @Body() updateFormaPagoDto: UpdateFormaPagoDto) {
@@ -41,10 +47,6 @@ export class FormaPagoController {
   remove(@Param('id') id: string) {
     return this.formaPagoService.remove(+id);
   }
-  @Get('activos')
-   @Roles(UserRole.ADMIN)
-    async getActivePayments() {
-    return await this.formaPagoService.getActivePaymentMethods();
-    }
+
 
 }

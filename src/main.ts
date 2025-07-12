@@ -28,12 +28,11 @@ async function bootstrap() {
 
   //Configura CORS
   app.enableCors({
-    origin: ['http://localhost:8101'], 
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    origin: ['http://localhost:8100', 'http://localhost:8101'], // ✅ los dos
+    methods: 'GET,POST,PUT,PATCH,DELETE,OPTIONS', // 👈 AGREGA PATCH aquí
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
   });
-
 
   // Habilita el raw body para que Stripe pueda procesar bien el webhook
   app.use(bodyParser.json({
@@ -42,6 +41,7 @@ async function bootstrap() {
     },
   }));
 
+  app.setGlobalPrefix('api'); // Esto hará que todas las rutas empiecen con /api
 
   //Inicia el servidor
   await app.listen(4000);

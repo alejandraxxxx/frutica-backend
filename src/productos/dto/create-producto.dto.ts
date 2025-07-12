@@ -23,32 +23,35 @@ export class CreateProductoDto {
 
     @IsOptional()
     @IsEnum(["kg", "pieza"])
-    unidad_venta: "kg" | "pieza"; // Se vende por kg o unidad
-    
-    @Type(() => Number)
-    @IsNumber()
-    precio_estimado: number; //  Precio base del producto
+    unidad_venta: "kg" | "pieza";
 
-
+    /*@Type(() => Number)
     @IsNumber()
+    precio_estimado: number;*/
+
     @Type(() => Number)
     @IsOptional()
+    @IsNumber()
     peso_estimado?: number;
     
     @IsOptional()
+    @Type(() => Number)
     @IsInt()
     total_existencias: number;
 
     @IsOptional()
     @IsBoolean()
+    @Type(() => Boolean)
     activo: boolean;
 
     @IsOptional()
     @IsBoolean()
+    @Type(() => Boolean)
     requiere_pesaje: boolean;
 
     @IsOptional()
     @IsBoolean()
+    @Type(() => Boolean)
     usa_tamano: boolean;
 
     @IsOptional()
@@ -57,6 +60,7 @@ export class CreateProductoDto {
 
     @IsOptional()
     @IsBoolean()
+    @Type(() => Boolean)
     variaciones_precio: boolean;
 
     @IsOptional()
@@ -70,33 +74,37 @@ export class CreateProductoDto {
     proveedor: string;
 
     @IsOptional()
+    @Type(() => Number)
     @IsInt()
     categoriaCategoriaK?: number;
 
     @IsOptional()
+    @Type(() => Number)
     @IsInt()
     precioPrecioK?: number;
 
     @IsOptional()
+    @Type(() => Number)
     @IsNumber()
     precio_por_kg?: number;
 
     @IsOptional()
+    @Type(() => Number)
     @IsNumber()
     precio_por_pieza?: number;
 
-    
     @IsOptional()
+    @Type(() => Number)
     @IsNumber()
     peso_chico?: number;
 
     @IsOptional()
+    @Type(() => Number)
     @IsNumber()
     peso_mediano?: number;
 
     @IsOptional()
+    @Type(() => Number)
     @IsNumber()
     peso_grande?: number;
-
-
 }

@@ -1,14 +1,6 @@
-import {
-  IsString,
-  IsEnum,
-  IsOptional,
-  IsNumber,
-} from 'class-validator';
-
-export enum TipoEntregaEnum {
-  DOMICILIO = 'Entrega a domicilio',
-  RECOGER = 'Pasar a recoger',
-}
+import { Type } from 'class-transformer';
+import { IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
+import { TipoEntregaEnum } from 'src/tipo-entrega/dto/create-tipo-entrega.dto';
 
 export class CreatePedidoDto {
   @IsEnum(TipoEntregaEnum, {
@@ -16,14 +8,17 @@ export class CreatePedidoDto {
   })
   tipo_entrega: TipoEntregaEnum;
 
+  @Type(() => Number)
   @IsNumber({}, { message: 'formaPagoId debe ser un número' })
   formaPagoId: number;
 
   @IsOptional()
+  @Type(() => Number)
   @IsNumber({}, { message: 'direccionId debe ser un número' })
   direccionId?: number;
 
   @IsOptional()
+  @Type(() => Number)
   @IsNumber({}, { message: 'usuarioId debe ser un número' })
   usuarioId?: number;
 
@@ -37,6 +32,7 @@ export class CreatePedidoDto {
   @IsString({ message: 'horario_entrega debe ser una cadena' })
   horario_entrega: string;
 
+  @Type(() => Number)
   @IsNumber({}, { message: 'costo_envio debe ser un número' })
   costo_envio: number;
 }

@@ -19,7 +19,7 @@ export class AuthService {
         private readonly jwtService: JwtService,
     ) {}
  
-    // ✅ Login con credenciales normales
+    //  Login con credenciales normales
     async login(email: string, password: string) {
         // Buscar usuario en la tabla de credenciales
         const userCredencial = await this.credencialRepository.findOne({ 
@@ -114,7 +114,7 @@ export class AuthService {
         }
     }
 
-    // ✅ Registro/Login con Google y almacenamiento en BD
+    // Registro/Login con Google y almacenamiento en BD
     async handleGoogleLogin(userData: any) {
         const { email, nombre, apellido_paterno, apellido_materno, telefono, sexo } = userData;
         

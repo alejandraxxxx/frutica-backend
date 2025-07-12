@@ -24,13 +24,13 @@ export class ListaDeseosController {
   agregar(@Param('productoId') productoId: number, @Req() req: RequestWithUser) {
     return this.listaService.agregar(req.user.id, productoId);
   }
-  
+
   @Delete(':productoId')
   @Roles(UserRole.USER, UserRole.ADMIN)
   quitar(@Param('productoId') productoId: number, @Req() req: RequestWithUser) {
     return this.listaService.quitar(req.user.id, productoId);
   }
-  
+
   @Get()
   @Roles(UserRole.USER, UserRole.ADMIN)
   obtener(@Req() req: RequestWithUser) {

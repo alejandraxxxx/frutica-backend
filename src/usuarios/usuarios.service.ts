@@ -53,6 +53,8 @@ export class UsuariosService {
 
   //Crear un usuario y su credencial
   async create(createUsuarioDto: CreateUsuarioDto): Promise<Usuario> {
+    console.log(' DTO recibido:', createUsuarioDto);
+
     const { nombre, apellido_paterno, apellido_materno, telefono, correo_electronico, contrasena, role } = createUsuarioDto;
 
     // 1️Verificar si el correo ya está registrado

@@ -8,6 +8,7 @@ import {
     Delete,
     UseGuards,
     Req,
+    NotFoundException,
   } from '@nestjs/common';
   import { DireccionesService } from './direccion.service';
   import { CreateDireccionDto } from './dto/create-direccion.dto';
@@ -55,6 +56,14 @@ import { RolesGuard } from 'src/guards/roles.guard';
     async getPredeterminada(@Req() req: RequestWithUser) {
       return this.direccionesService.obtenerPredeterminada(req.user.id);
     }
+    @Get('publica')
+    async getDireccionPublica() {
+      const direcciones = await this.direccionesService.findPublicas();
+      if (!direcciones.length) {
+        throw new NotFoundException('No se encontró dirección pública');
+      }
+      return direcciones[0]; // Solo mandamos la primera pública
+    }
   
     // Marcar como predeterminada
     @Patch(':id/marcar-predeterminada')
@@ -93,5 +102,6 @@ import { RolesGuard } from 'src/guards/roles.guard';
     return this.direccionesService.findPublicas();
     }
 
+  
   }
   
