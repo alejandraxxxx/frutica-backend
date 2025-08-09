@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Put, UseGuards, Req, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Put, UseGuards, Req, NotFoundException, ParseIntPipe } from '@nestjs/common';
 import { UsuariosService } from './usuarios.service';
 import { CreateUsuarioDto } from './dto/create-usuario.dto';
 import { UpdateUsuarioDto } from './dto/update-usuario.dto';
@@ -6,6 +6,7 @@ import { UserRole } from './entities/usuario.entity';
 import { Roles } from 'src/decorators/roles.decorator';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { RolesGuard } from 'src/guards/roles.guard';
+import { ParseBoolPipe } from '@nestjs/common';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('usuarios')
@@ -19,7 +20,7 @@ export class UsuariosController {
 
   // . Obtener todos los usuarios
   @Get()
-   @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN)
   async getAllUsers() {
     return await this.usuariosService.findAll();
   }
@@ -39,24 +40,37 @@ export class UsuariosController {
       sexo: usuario.sexo,
     };
   }
-  
+
   //  Obtener un usuario por ID
   @Get(':id')
-   @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN)
   async getUserById(@Param('id') id: number) {
     return await this.usuariosService.findOne(id);
   }
 
+    /**
+   * PATCH /usuarios/:id/verificado
+   * @body { verificado: boolean }
+   */
+  @Patch(':id/verificado')
+  @Roles(UserRole.ADMIN)
+  async toggleVerificado(
+    @Param('id', ParseIntPipe) id: number,
+    @Body('verificado', ParseBoolPipe) verificado: boolean,
+  ) {
+    return this.usuariosService.setVerificado(id, verificado);
+  }
+
   @Patch('mi-perfil')
-@UseGuards(JwtAuthGuard)
-async actualizarMiPerfil(@Req() req: any, @Body() body: any) {
-  const usuarioId = req.user.id;
-  return this.usuariosService.update(usuarioId, body);
-}
-x
+  @UseGuards(JwtAuthGuard)
+  async actualizarMiPerfil(@Req() req: any, @Body() body: any) {
+    const usuarioId = req.user.id;
+    return this.usuariosService.update(usuarioId, body);
+  }
+
   // Actualizar usuario por ID
   @Put(':id')
-   @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN)
   async updateUser(@Param('id') id: number, @Body() updateUsuarioDto: UpdateUsuarioDto) {
     return await this.usuariosService.update(id, updateUsuarioDto);
   }

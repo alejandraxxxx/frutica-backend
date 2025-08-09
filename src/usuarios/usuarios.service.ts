@@ -5,6 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { UserRole, Usuario } from './entities/usuario.entity';
 import { Credencial } from '../credenciales/entities/credencial.entity';
+import { EmailService } from 'src/email/email.service';
 
 @Injectable()
 export class UsuariosService {
@@ -14,7 +15,8 @@ export class UsuariosService {
 
     @InjectRepository(Credencial)
     private credencialRepository: Repository<Credencial>,
-  ) {}
+    private readonly emailService: EmailService,
+  ) { }
 
   // 🧩 Buscar por ID
   async findById(id: number) {
@@ -63,6 +65,9 @@ export class UsuariosService {
 
     await this.credencialRepository.save(nuevaCredencial);
 
+    //Enviar correo de bienvenida
+    await this.emailService.enviarBienvenida(correo_electronico, nombre);
+
     return nuevoUsuario;
   }
 
@@ -92,6 +97,14 @@ export class UsuariosService {
 
     return { message: 'Contraseña actualizada correctamente' };
   }
+
+  //Activar/desactivar cuenta by admin
+  async setVerificado(id: number, verificado: boolean): Promise<Usuario> {
+  const usuario = await this.findById(id);
+  usuario.user_verificado = verificado;
+  return this.usuarioRepository.save(usuario);
+}
+
 
   // 🗑 Eliminar usuario
   async remove(id: number) {

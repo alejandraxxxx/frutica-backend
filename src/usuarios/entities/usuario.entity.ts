@@ -67,7 +67,7 @@ export class Usuario {
     @Column()
     entrega_habitual: boolean;
 
-    @Column()
+    @Column({ default: false, name: 'user_verificado', type: 'boolean' })
     user_verificado: boolean;
 
     @OneToMany(() => Direccion, direccion => direccion.usuario)

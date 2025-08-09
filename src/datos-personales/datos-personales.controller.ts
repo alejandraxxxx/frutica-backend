@@ -28,8 +28,7 @@ export class DatosPersonalesController {
     const datos = await this.datosPersonalesService.findByUsuarioId(usuarioId);
 
     if (!datos) {
-      return null; // El frontend sabrá que no hay datos de facturación aún
-    }
+      return null; }
 
     return {
       rfc: datos.rfc,

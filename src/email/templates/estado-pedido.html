@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Actualización de tu pedido</title>
+</head>
+
+<body style="margin:0;padding:0;font-family:Arial,sans-serif;background-color:#f4f4f4;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f4f4;padding:40px 0;">
+        <tr>
+            <td align="center">
+                <table width="600" cellpadding="0" cellspacing="0"
+                    style="background-color:#ffffff;border-radius:8px;overflow:hidden;">
+                    <!-- Cabecera -->
+                    <tr>
+                        <td align="center" style="background-color:#4CAF50;padding:20px;">
+                            <img src="https://res.cloudinary.com/tu-cuenta/image/upload/v123456/logo.png" alt="Frutica"
+                                width="120" style="display:block;" />
+                        </td>
+                    </tr>
+                    <!-- Cuerpo -->
+                    <tr>
+                        <td style="padding:30px;">
+                            <h1 style="margin:0 0 16px;color:#333333;font-size:24px;">
+                                ¡Hola {{nombre}}!
+                            </h1>
+                            <p style="color:#555555;font-size:16px;line-height:1.5;margin:0 0 20px;">
+                                Te informamos que el <strong>estado de tu pedido</strong> ha cambiado:
+                            </p>
+                            <table cellpadding="0" cellspacing="0" style="width:100%;margin-bottom:20px;">
+                                <tr>
+                                    <td style="color:#333333;font-size:16px;padding:8px 0;"><strong>Nuevo
+                                            estado:</strong></td>
+                                    <td style="color:#333333;font-size:16px;padding:8px 0;">{{estado}}</td>
+                                </tr>
+                                <!-- Si quieres mostrar más datos, descomenta y ajusta:
+                <tr>
+                    <td style="color:#333333;font-size:16px;padding:8px 0;"><strong>Pedido N°:</strong></td>
+                    <td style="color:#333333;font-size:16px;padding:8px 0;">{{numeroPedido}}</td>
+                </tr>
+                <tr>
+                    <td style="color:#333333;font-size:16px;padding:8px 0;"><strong>Fecha:</strong></td>
+                    <td style="color:#333333;font-size:16px;padding:8px 0;">{{fecha}}</td>
+                </tr>
+                -->
+                            </table>
+                            <p style="color:#555555;font-size:16px;line-height:1.5;margin:0 0 30px;">
+                                Para ver los detalles o hacer seguimiento, pulsa el botón de abajo:
+                            </p>
+                            <p style="text-align:center;margin:0 0 30px;">
+                                <a href="https://tu-dominio.com/mis-pedidos" style="
+                    background-color:#4CAF50;
+                    color:#ffffff;
+                    text-decoration:none;
+                    padding:12px 24px;
+                    border-radius:4px;
+                    display:inline-block;
+                    font-size:16px;
+                    ">
+                                    Ver mis pedidos
+                                </a>
+                            </p>
+                            <p style="color:#999999;font-size:14px;line-height:1.4;margin:0;">
+                                Si no reconoces este cambio o tienes dudas, contáctanos respondiendo este correo.
+                            </p>
+                        </td>
+                    </tr>
+                    <!-- Pie de página -->
+                    <tr>
+                        <td align="center" style="background-color:#eeeeee;padding:20px;">
+                            <p style="margin:0;color:#777777;font-size:12px;">
+                                Frutica © 2025 • <a href="https://tu-dominio.com/terminos"
+                                    style="color:#777777;text-decoration:none;">Términos</a> • <a
+                                    href="https://tu-dominio.com/privacidad"
+                                    style="color:#777777;text-decoration:none;">Privacidad</a>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+
+</html>
