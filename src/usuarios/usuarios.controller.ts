@@ -48,17 +48,18 @@ export class UsuariosController {
     return await this.usuariosService.findOne(id);
   }
 
-    /**
-   * PATCH /usuarios/:id/verificado
-   * @body { verificado: boolean }
-   */
+  /**
+ * PATCH /usuarios/:id/verificado
+ * @body { verificado: boolean }
+ */
   @Patch(':id/verificado')
-  @Roles(UserRole.ADMIN)
-  async toggleVerificado(
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  toggleVerificado(
     @Param('id', ParseIntPipe) id: number,
-    @Body('verificado', ParseBoolPipe) verificado: boolean,
+    @Body('verificado') verificado: boolean,
   ) {
-    return this.usuariosService.setVerificado(id, verificado);
+    return this.usuariosService.toggleVerificado(id, verificado);
   }
 
   @Patch('mi-perfil')

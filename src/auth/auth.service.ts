@@ -6,6 +6,7 @@ import { Credencial } from '../credenciales/entities/credencial.entity';
 import { JwtService } from '@nestjs/jwt';
 import { admin } from 'src/config/firebase.config';
 import { Usuario, UserRole } from 'src/usuarios/entities/usuario.entity';
+import { ForbiddenException } from '@nestjs/common';
 
 @Injectable()
 export class AuthService {
@@ -19,6 +20,7 @@ export class AuthService {
         private readonly jwtService: JwtService,
     ) { }
 
+
     // ✅ Login con credenciales normales
     async login(email: string, password: string) {
         const userCredencial = await this.credencialRepository.findOne({
@@ -28,6 +30,11 @@ export class AuthService {
 
         if (!userCredencial || !userCredencial.usuario) {
             throw new UnauthorizedException('Credenciales incorrectas');
+        }
+
+        //bloqueo de cuenta no esta activa
+        if (!userCredencial.usuario.user_verificado) {
+            throw new ForbiddenException('Tu cuenta no está activa. Contacta al soporte.');
         }
 
         const passwordMatch = await bcrypt.compare(password, userCredencial.password_hash);
@@ -73,6 +80,11 @@ export class AuthService {
                 relations: ['usuario'],
             });
 
+            // ⛔ Si ya existe y está desactivado: bloquear
+            if (credencial?.usuario && !credencial.usuario.user_verificado) {
+                throw new ForbiddenException('Tu cuenta no está activa. Contacta al soporte.');
+            }
+
             if (!credencial) {
                 // Crear usuario
                 const nuevoUsuario = this.usuarioRepository.create({
@@ -99,7 +111,7 @@ export class AuthService {
                 credencial = await this.credencialRepository.save(credencial);
             }
 
-            // 👉 Ahora sí: generar JWT local (8 horas)
+            // Ahora sí: generar JWT local (8 horas)
             const jwtToken = this.jwtService.sign(
                 {
                     email,
@@ -109,10 +121,10 @@ export class AuthService {
                 { expiresIn: '8h' }
             );
 
-            // 👉 También generar token de Firebase (opcional)
+            //También generar token de Firebase (opcional)
             const firebaseToken = await admin.auth().createCustomToken(email);
 
-            // 👉 Guardar el token generado en la credencial
+            //Guardar el token generado en la credencial
             credencial.token = jwtToken;
             await this.credencialRepository.save(credencial);
 
@@ -123,12 +135,14 @@ export class AuthService {
             };
         } catch (error) {
             console.error('❌ Error loginWithGoogle:', error);
+            // Si ya es Forbidden/Unauthorized, Nest respetará el status code
+            if (error instanceof ForbiddenException || error instanceof UnauthorizedException) throw error;
             throw new UnauthorizedException('Error al iniciar sesión con Google');
         }
     }
 
 
-    // ✅ Registro/Login con Google (desde el registro normal)
+    //Registro/Login con Google (desde el registro normal)
     async handleGoogleLogin(userData: any) {
         const { email, nombre, apellido_paterno, apellido_materno, telefono, sexo } = userData;
 
@@ -176,7 +190,7 @@ export class AuthService {
         }
     }
 
-    // ✅ Verificar y decodificar un token JWT
+    //Verificar y decodificar un token JWT
     async validateToken(token: string) {
         try {
             return this.jwtService.verify(token);
@@ -185,7 +199,7 @@ export class AuthService {
         }
     }
 
-    // ✅ Verificar si un usuario es Admin
+    //Verificar si un usuario es Admin
     async isAdmin(userId: number): Promise<boolean> {
         const user = await this.usuarioRepository.findOne({ where: { usuario_k: userId } });
         return user?.role === UserRole.ADMIN;

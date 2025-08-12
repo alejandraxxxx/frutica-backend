@@ -58,7 +58,7 @@ import { EmailModule } from './email/email.module';
     TypeOrmModule.forRoot({
       type: 'mysql',
       host: 'localhost', // O la IP del servidor donde está phpMyAdmin
-      port: 3307, // Puerto predeterminado de MySQL
+      port: 3308, // Puerto predeterminado de MySQL
       username: 'root', // Usuario de la base de datos
       password: '', // Contraseña de MySQL (deja vacío si no tiene)
       database: 'frutica-app1', // Nombre de la base de datos en phpMyAdmin
