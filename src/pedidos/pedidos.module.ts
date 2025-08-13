@@ -14,11 +14,12 @@ import { TipoEntrega } from 'src/tipo-entrega/entities/tipo-entrega.entity';
 import { Direccion } from 'src/direccion/entities/direccion.entity';
 import { PagosModule } from 'src/pagos/pagos.module';
 import { Producto } from 'src/productos/entities/productos.entity';
+import { EmailModule } from 'src/email/email.module';
 
 @Module({
   controllers: [PedidosController],
   providers: [PedidosService],
-  imports: [TypeOrmModule.forFeature([Pago, Pedido, FormaPago, Usuario, Carrito, CarritoItem, Comentario, DetallePedido, TipoEntrega, Direccion, Producto]), PagosModule], // Registra las entidades
+  imports: [TypeOrmModule.forFeature([Pago, Pedido, FormaPago, Usuario, Carrito, CarritoItem, Comentario, DetallePedido, TipoEntrega, Direccion, Producto]), PagosModule, EmailModule], // Registra las entidades
   exports: [PedidosService]
 })
 export class PedidosModule {}
