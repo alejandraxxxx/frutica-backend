@@ -59,16 +59,22 @@ export class EmailService {
     );
   }
 
-  async enviarEstadoPedido(email: string, nombre: string, estado: string, ordersUrl: string) {
+  async enviarEstadoPedido(
+    email: string,
+    params: { nombre: string; estado: string; ordersUrl?: string }
+  ) {
+    const orders_url =
+      params.ordersUrl ?? `${process.env.FRONT_APP_URL ?? 'http://localhost:8100'}/mis-pedidos`;
+
     return this.sendTemplate(
       email,
       'Actualización de tu pedido',
       'estado-pedido.html',
       {
-        nombre,
-        estado,
-        orders_url: ordersUrl,
-        year: new Date().getFullYear().toString(),
+        nombre: params.nombre,
+        estado: params.estado,
+        orders_url,
+        year: String(new Date().getFullYear()),
       }
     );
   };

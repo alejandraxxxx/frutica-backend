@@ -1,8 +1,12 @@
-import { Controller, Post, Body, Get, Param, Put, Delete } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, Put, Delete, BadRequestException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateUsuarioDto } from 'src/usuarios/dto/create-usuario.dto';
 import { UsuariosService } from 'src/usuarios/usuarios.service';
 import { UpdateUsuarioDto } from 'src/usuarios/dto/update-usuario.dto';
+
+class GoogleLoginDto {
+  idToken!: string;
+}
 
 @Controller('auth')  // <-- Ruta base "/auth"
 export class AuthController {
@@ -10,7 +14,6 @@ export class AuthController {
     private readonly authService: AuthService,
     private readonly usuariosService: UsuariosService
   ) { }
-
 
 
   // 🔹 Registro de usuario con email y contraseña
@@ -39,10 +42,10 @@ export class AuthController {
 
 
   // Login con Google
-  @Post('google-login')
-  async googleLogin(@Body() body: { idToken: string }) {
-    return this.authService.loginWithGoogle(body.idToken);
+  @Post('google') // o 'google-login' si así lo tienes en el front
+  async google(@Body('idToken') idToken: string) {
+    if (!idToken) throw new BadRequestException('idToken es requerido');
+    return this.authService.loginWithGoogle(idToken);
   }
-
 
 }

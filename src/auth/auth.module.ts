@@ -12,6 +12,7 @@ import { Usuario } from 'src/usuarios/entities/usuario.entity';
 import { Credencial } from 'src/credenciales/entities/credencial.entity';
 import { CredencialesModule } from 'src/credenciales/credenciales.module';
 import { UsuariosModule } from 'src/usuarios/usuarios.module';
+import { EmailModule } from 'src/email/email.module';
 
 @Module({
   imports: [
@@ -32,7 +33,7 @@ import { UsuariosModule } from 'src/usuarios/usuarios.module';
         secret: configService.get<string>('JWT_SECRET'),
         signOptions: { expiresIn: '8h' },
       }),
-    }),
+    }),EmailModule,
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy],
