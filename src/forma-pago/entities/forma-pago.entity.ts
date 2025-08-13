@@ -26,9 +26,6 @@ export class FormaPago {
     @OneToMany(() => Factura, factura => factura.formaPago)
     facturas: Factura[];
 
-    @OneToMany(() => Pedido, pedido => pedido.formaPago)
-    pedidos: Pedido[];
-
     @OneToMany(() => Pago, pago => pago.formaPago)
     pagos: Pago[]; // Relación con la tabla Pago
 }

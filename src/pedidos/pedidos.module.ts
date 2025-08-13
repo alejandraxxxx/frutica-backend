@@ -14,10 +14,12 @@ import { TipoEntrega } from 'src/tipo-entrega/entities/tipo-entrega.entity';
 import { Direccion } from 'src/direccion/entities/direccion.entity';
 import { PagosModule } from 'src/pagos/pagos.module';
 import { Producto } from 'src/productos/entities/productos.entity';
+import Stripe from 'stripe';
+import { StripeService } from 'src/stripe/stripe.service';
 
 @Module({
   controllers: [PedidosController],
-  providers: [PedidosService],
+  providers: [PedidosService, StripeService],
   imports: [TypeOrmModule.forFeature([Pago, Pedido, FormaPago, Usuario, Carrito, CarritoItem, Comentario, DetallePedido, TipoEntrega, Direccion, Producto]), PagosModule], // Registra las entidades
   exports: [PedidosService]
 })

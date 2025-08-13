@@ -51,8 +51,6 @@ export class PedidosController {
     return this.pedidosService.getPedidosPorUsuario(usuarioId);
   }
 
-
-
   @Get('por-estado')
   @Roles(UserRole.ADMIN, UserRole.USER)
   async obtenerPorEstado(@Query('estado') estadoRaw: string) {
@@ -123,10 +121,11 @@ export class PedidosController {
     }
   }
 
+  // 🔥 ESTE ES EL ENDPOINT CLAVE - Incluye relación de usuario para admin
   @Get()
   @Roles(UserRole.ADMIN)
   findAll() {
-    return this.pedidosService.findAll();
+    return this.pedidosService.findAllConUsuario(); // 👈 Cambiamos aquí
   }
 
   @Patch(':id')
@@ -139,13 +138,27 @@ export class PedidosController {
   }
 
   @Patch(':id/cambiar-estado')
-  @Roles(UserRole.ADMIN)
-  async cambiarEstado(
+ @Roles(UserRole.ADMIN, UserRole.USER)
+   async cambiarEstado(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: CambiarEstadoPedidoDto,
   ) {
     return this.pedidosService.cambiarEstado(id, dto);
   }
+  @Patch(':id/cancelar')
+  @Roles(UserRole.ADMIN, UserRole.USER)
+async cancelarPedido(
+  @Param('id', ParseIntPipe) id: number,
+  @Body() body: { motivo?: string },
+  @Req() req: Request,
+) {
+  const usuarioId = (req as any).user?.userId;
+  const rolUsuario = (req as any).user?.role;
+  
+  console.log(`🔄 Usuario ${usuarioId} (${rolUsuario}) cancelando pedido ${id}`);
+  
+  return this.pedidosService.cancelarPedido(id, usuarioId, rolUsuario, body.motivo);
+}
 
   @Delete(':id')
   @Roles(UserRole.ADMIN)
@@ -155,16 +168,16 @@ export class PedidosController {
     return this.pedidosService.remove(id);
   }
 
-  
-  @Get('usuario/:id') // 🔥 Este debe ir antes del ':pedidoId'
+  @Get('usuario/:id') // Este debe ir antes del ':pedidoId'
   @Roles(UserRole.ADMIN, UserRole.USER)
   async obtenerPedidosPorUsuario(
     @Param('id', ParseIntPipe) id: number,
   ) {
     return this.pedidosService.obtenerPedidosPorUsuario(id);
   }
+
   /**
-   * 🚨 ESTA RUTA VA AL FINAL
+   *  ESTA RUTA VA AL FINAL
    */
   @Get(':pedidoId')
   @Roles(UserRole.ADMIN, UserRole.USER)

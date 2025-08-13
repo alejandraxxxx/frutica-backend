@@ -8,4 +8,8 @@ export class ConfirmPaymentDto {
   @IsNotEmpty()
   @IsNumber()
   userId: number;
+
+  @IsNotEmpty()
+  @IsNumber()
+  pedidoId: number;
 }

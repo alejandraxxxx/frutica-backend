@@ -8,12 +8,13 @@ import { Usuario } from 'src/usuarios/entities/usuario.entity';
 import { FormaPago } from 'src/forma-pago/entities/forma-pago.entity';
 import { Carrito } from 'src/carrito/entities/carrito.entity';
 import { CloudinaryModule } from 'src/cloudinary/cloudinary.module';
+import { Comentario } from 'src/comentario/entities/comentario.entity';
 //import { WebhookController } from './webhook.controller';
 
 @Module({
   controllers: [PagosController],
   providers: [PagosService],
-  imports: [TypeOrmModule.forFeature([Pago, Pedido, Usuario, FormaPago, Carrito]),CloudinaryModule],
+  imports: [TypeOrmModule.forFeature([Pago, Pedido, Usuario, FormaPago, Carrito, Comentario]),CloudinaryModule],
   exports: [PagosService]
 })
 export class PagosModule {}

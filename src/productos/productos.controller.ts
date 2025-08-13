@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body, Param, Delete, Patch, Put, UseInterceptors, UploadedFile, UseGuards, Req, ForbiddenException, BadRequestException, UploadedFiles } from '@nestjs/common';
+import { Controller, Post, Get, Body, Param, Delete, Patch, Put, UseInterceptors, UploadedFile, UseGuards, Req, ForbiddenException, BadRequestException, UploadedFiles, Query } from '@nestjs/common';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { ProductosService } from './productos.service';
 import { CreateProductoDto } from './dto/create-producto.dto';
@@ -35,6 +35,15 @@ export class ProductosController {
   async findAll() {
     return this.productosService.findAll();
   }
+  
+ @Get('buscar')
+@Roles(UserRole.ADMIN, UserRole.USER)
+async buscarProductos(@Query('termino') termino: string) {
+    if (!termino || termino.trim() === '') {
+        throw new BadRequestException('El término de búsqueda no puede estar vacío');
+    }
+    return this.productosService.buscar(termino);
+}
 
   /** Obtener producto por ID */
   @Get(':id')
@@ -43,6 +52,8 @@ export class ProductosController {
   async findOne(@Param('id') id: string) {
     return this.productosService.findOne(+id);
   }
+
+
 
   /**  Subir o actualizar imagen de producto */
   @Post(':id/upload')

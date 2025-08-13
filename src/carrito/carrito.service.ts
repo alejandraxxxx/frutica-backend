@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { Carrito } from './entities/carrito.entity';
@@ -19,29 +19,26 @@ export class CarritoService {
 
   ) {}
 
-  private calcularPrecioUnitario(producto: Producto, tipo_medida: 'kg' | 'pieza', tamano?: 'Chico' | 'Mediano' | 'Grande'): number {
-    if (producto.usa_tamano && tamano) {
-      const peso =
-        tamano === 'Chico' ? producto.peso_chico :
-        tamano === 'Mediano' ? producto.peso_mediano :
-        producto.peso_grande;
-  
-      return peso && producto.precio_por_kg
-        ? (peso / 1000) * producto.precio_por_kg
-        : 0;
-    }
-  
-    if (tipo_medida === 'kg' && producto.precio_por_kg) {
-      return producto.precio_por_kg;
-    }
-  
-    if (tipo_medida === 'pieza' && producto.precio_por_pieza) {
-      return producto.precio_por_pieza;
-    }
-  
-    return 0;
+private calcularPrecioUnitario(producto: Producto, tipo_medida: 'kg' | 'pieza', tamano?: 'Chico' | 'Mediano' | 'Grande'): number {
+  // 1. Productos SIN tamaño
+  if (!producto.usa_tamano) {
+    return tipo_medida === 'kg' ? producto.precio_por_kg : producto.precio_por_pieza;
   }
-  
+
+  // 2. Lógica para productos CON tamaño
+  const pesosGramos = { // Asumimos que los pesos están en GRAMOS
+    'Chico': producto.peso_chico,
+    'Mediano': producto.peso_mediano,
+    'Grande': producto.peso_grande
+  };
+
+  // Regla de oro: 
+  // - Si precio_por_pieza existe → Producto pre-empaquetado (precio FIJO)
+  // - Si no → Producto por peso (cálculo dinámico)
+  return producto.precio_por_pieza 
+    ? producto.precio_por_pieza // Precio FIJO para papaya
+    : (pesosGramos[tamano] / 1000) * producto.precio_por_kg; // Para sandía
+}
 
   async obtenerCarrito(usuarioId: number) {
     const usuario = await this.usuarioRepo.findOne({ where: { usuario_k: usuarioId } });
@@ -98,184 +95,279 @@ export class CarritoService {
     };
   }
   
-  async agregarProducto(data: CreateCarritoDto) {
-    const { usuarioId, productoId, cantidad, tipo_medida, tamano, peso_personalizado } = data;
-  
-    const usuario = await this.usuarioRepo.findOne({ where: { usuario_k: usuarioId } });
-    if (!usuario) throw new NotFoundException('Usuario no encontrado');
-  
-    let carrito = await this.carritoRepo.findOne({
-      where: { usuario },
-      relations: ['items', 'items.producto']
-    });
-  
-    if (!carrito) {
-      carrito = this.carritoRepo.create({ usuario, items: [] });
-      await this.carritoRepo.save(carrito);
-    }
-  
-   // Traer el producto con sus ofertas
-      const producto = await this.productoRepo.findOne({
-      where: { producto_k: productoId },
-        relations: ['ofertas'],
-      });
-    if (!producto) throw new NotFoundException('Producto no encontrado');
+async agregarProducto(data: CreateCarritoDto) {
+  const { usuarioId, productoId, cantidad, tipo_medida, tamano, peso_personalizado } = data;
 
-    const precioUnitario = this.calcularPrecioConOferta(producto, tipo_medida, tamano);
+  console.log('🛒 AGREGAR PRODUCTO - Datos recibidos:', {
+    usuarioId,
+    productoId,
+    cantidad,
+    tipo_medida,
+    tamano,
+    peso_personalizado
+  });
 
-  
-    // Calcular peso si requiere pesaje
-    const pesoCalculado = producto.requiere_pesaje
-      ? peso_personalizado ??
-        (producto.usa_tamano && tamano
-          ? tamano === 'Chico' ? producto.peso_chico :
-            tamano === 'Mediano' ? producto.peso_mediano :
-            producto.peso_grande
-          : tipo_medida === 'kg' ? cantidad * 1000 : cantidad)
-      : null;
-  
-    //  Buscar si ya hay un item con el mismo producto + medida + tamaño
-    let item = carrito.items.find(i =>
-      i.producto.producto_k === productoId &&
-      i.tipo_medida === tipo_medida &&
-      ((i.tamano === tamano) || (i.tamano == null && tamano == null))
-    );
-  
-    if (item) {
-      item.cantidad += cantidad;
-      item.peso_seleccionado = pesoCalculado;
-      item.precio_total = item.cantidad * precioUnitario;
-    } else {
-      item = this.carritoItemRepo.create({
-        carrito,
-        producto,
-        cantidad,
-        tipo_medida,
-        tamano,
-        peso_seleccionado: pesoCalculado,
-        precio_total: cantidad * precioUnitario,
-      });
-      carrito.items.push(item);
-    }
-  
-    await this.carritoItemRepo.save(item);
+  const usuario = await this.usuarioRepo.findOne({ where: { usuario_k: usuarioId } });
+  if (!usuario) throw new NotFoundException('Usuario no encontrado');
+
+  let carrito = await this.carritoRepo.findOne({
+    where: { usuario },
+    relations: ['items', 'items.producto']
+  });
+
+  if (!carrito) {
+    carrito = this.carritoRepo.create({ usuario, items: [] });
     await this.carritoRepo.save(carrito);
-  
-    return {
-      id: carrito.id,
-      items: carrito.items.map(item => ({
-        id: item.id,
-        cantidad: item.cantidad,
-        peso_seleccionado: item.peso_seleccionado,
-        tipo_medida: item.tipo_medida,
-        tamano: item.tamano,
-        precio_total: item.precio_total,
-        producto: {
-          producto_k: item.producto.producto_k,
-          nombre: item.producto.nombre,
-          codigo_producto: item.producto.codigo_producto,
-          precio_estimado: this.calcularPrecioUnitario(item.producto, item.tipo_medida, item.tamano),
-          unidad_venta: item.producto.unidad_venta,
-          requiere_pesaje: item.producto.requiere_pesaje,
-          usa_tamano: item.producto.usa_tamano,
-          peso_total: item.producto.peso_total
-        }
-      }))
-    };
   }
-  
 
-  async editarProducto(
-    usuarioId: number,
-    productoId: number,
-    nuevaCantidad: number,
-    tipo_medida: 'kg' | 'pieza',
-    tamano?: 'Chico' | 'Mediano' | 'Grande',
-    peso_personalizado?: number
-  ) {
-    const carrito = await this.carritoRepo.findOne({
-      where: { usuario: { usuario_k: usuarioId } },
-      relations: ['items', 'items.producto'],
-    });
-  
-    if (!carrito) throw new NotFoundException('Carrito no encontrado');
-  
-    const item = carrito.items.find(i => i.producto.producto_k === productoId);
-    if (!item) throw new NotFoundException('Producto no encontrado en el carrito');
-  
-    // Cargar el producto con sus ofertas desde la base de datos
-    const producto = await this.productoRepo.findOne({
-      where: { producto_k: productoId },
-      relations: ['ofertas'],
-    });
-  
-    if (!producto) throw new NotFoundException('Producto no encontrado');
-  
-    // Validación si el producto usa tamaño
-    if (producto.usa_tamano && !tamano) {
-      throw new Error('Debe seleccionar un tamaño para este producto');
-    }
-  
-    item.cantidad = nuevaCantidad;
-    item.tipo_medida = tipo_medida;
-    item.tamano = tamano;
-  
-    const precioUnitario = this.calcularPrecioConOferta(producto, tipo_medida, tamano);
-  
-    item.peso_seleccionado = producto.requiere_pesaje
-      ? peso_personalizado ??
-        (producto.usa_tamano && tamano
+  const producto = await this.productoRepo.findOne({
+    where: { producto_k: productoId },
+    relations: ['ofertas'],
+  });
+
+  if (!producto) throw new NotFoundException('Producto no encontrado');
+
+  console.log('Producto encontrado:', {
+    producto_k: producto.producto_k,
+    nombre: producto.nombre,
+    usa_tamano: producto.usa_tamano,
+    requiere_pesaje: producto.requiere_pesaje,
+    precio_por_kg: producto.precio_por_kg,
+    precio_por_pieza: producto.precio_por_pieza,
+    peso_chico: producto.peso_chico,
+    peso_mediano: producto.peso_mediano,
+    peso_grande: producto.peso_grande
+  });
+
+  // Validación de tamaño
+  if (producto.usa_tamano && !tamano) {
+    throw new BadRequestException('Debe seleccionar un tamaño para este producto que usa tamaños');
+  }
+
+  const precioUnitario = this.calcularPrecioConOferta(producto, tipo_medida, tamano);
+  console.log('💰 Precio unitario calculado:', precioUnitario);
+
+  if (precioUnitario <= 0) {
+    throw new BadRequestException('No se pudo calcular el precio para este producto');
+  }
+
+  // Calcular peso
+  const pesoCalculado = producto.requiere_pesaje
+    ? peso_personalizado ?? (
+        producto.usa_tamano && tamano
           ? tamano === 'Chico' ? producto.peso_chico :
             tamano === 'Mediano' ? producto.peso_mediano :
             producto.peso_grande
-          : tipo_medida === 'kg' ? nuevaCantidad * 1000 : nuevaCantidad)
-      : null;
-  
-    item.precio_total = nuevaCantidad * precioUnitario;
-  
-    await this.carritoItemRepo.save(item);
-  
-    return {
-      message: 'Producto actualizado en el carrito',
-      item: {
-        id: item.id,
-        cantidad: item.cantidad,
-        tipo_medida: item.tipo_medida,
-        peso_seleccionado: item.peso_seleccionado,
-        precio_total: item.precio_total,
-        tamano: item.tamano,
-        producto: {
-          producto_k: producto.producto_k,
-          nombre: producto.nombre,
-          codigo_producto: producto.codigo_producto,
-          unidad_venta: producto.unidad_venta,
-          requiere_pesaje: producto.requiere_pesaje
-        }
+          : tipo_medida === 'kg' ? cantidad * 1000 : cantidad // en gramos
+      )
+    : null;
+
+  console.log(' Peso calculado:', pesoCalculado);
+
+  // Validación opcional
+  if (producto.requiere_pesaje && !pesoCalculado && !producto.usa_tamano) {
+    throw new BadRequestException('Peso personalizado requerido para este producto');
+  }
+
+  let item = carrito.items.find(i =>
+    i.producto.producto_k === productoId &&
+    i.tipo_medida === tipo_medida &&
+    ((i.tamano === tamano) || (i.tamano == null && tamano == null))
+  );
+
+  const precioTotal = producto.requiere_pesaje
+    ? (pesoCalculado / 1000) * precioUnitario
+    : cantidad * precioUnitario;
+
+  console.log('Precio total calculado:', precioTotal);
+
+  if (item) {
+    console.log('Actualizando item existente');
+    item.cantidad += cantidad;
+    item.peso_seleccionado = pesoCalculado;
+    item.precio_total = producto.requiere_pesaje
+      ? (pesoCalculado / 1000) * precioUnitario
+      : item.cantidad * precioUnitario;
+  } else {
+    console.log('➕ Creando nuevo item');
+    item = this.carritoItemRepo.create({
+      carrito,
+      producto,
+      cantidad,
+      tipo_medida,
+      tamano,
+      peso_seleccionado: pesoCalculado,
+      precio_total: precioTotal,
+    });
+    carrito.items.push(item);
+  }
+
+  await this.carritoItemRepo.save(item);
+  await this.carritoRepo.save(carrito);
+
+  console.log('Item guardado correctamente:', {
+    id: item.id,
+    cantidad: item.cantidad,
+    precio_total: item.precio_total,
+    peso_seleccionado: item.peso_seleccionado,
+    tipo_medida: item.tipo_medida,
+    tamano: item.tamano
+  });
+
+  return {
+    id: carrito.id,
+    items: carrito.items.map(item => ({
+      id: item.id,
+      cantidad: item.cantidad,
+      peso_seleccionado: item.peso_seleccionado,
+      tipo_medida: item.tipo_medida,
+      tamano: item.tamano,
+      precio_total: item.precio_total,
+      producto: {
+        producto_k: item.producto.producto_k,
+        nombre: item.producto.nombre,
+        codigo_producto: item.producto.codigo_producto,
+        precio_estimado: this.calcularPrecioUnitario(item.producto, item.tipo_medida, item.tamano),
+        unidad_venta: item.producto.unidad_venta,
+        requiere_pesaje: item.producto.requiere_pesaje,
+        usa_tamano: item.producto.usa_tamano,
+        peso_total: item.producto.peso_total
       }
-    };
-  }
+    }))
+  };
+}
   
 
-  async eliminarProducto(usuarioId: number, productoId: number) {
-    const carrito = await this.carritoRepo.findOne({
-      where: { usuario: { usuario_k: usuarioId } },
-      relations: ['items', 'items.producto'],
-    });
+ async editarProducto(
+  usuarioId: number,
+  productoId: number,
+  nuevaCantidad: number,
+  tipo_medida: 'kg' | 'pieza',
+  tamano?: 'Chico' | 'Mediano' | 'Grande',
+  peso_personalizado?: number
+) {
+  console.log('🔍 SERVICE - Parámetros recibidos:', {
+    usuarioId,
+    productoId,
+    nuevaCantidad,
+    tipo_medida,
+    tamano,
+    peso_personalizado
+  });
+  
+const carrito = await this.carritoRepo.findOne({
+    where: { usuario: { usuario_k: usuarioId } },
+    relations: ['items', 'items.producto'],
+  });
 
-    if (!carrito) {
-      throw new NotFoundException('Carrito no encontrado');
-    }
+  if (!carrito) throw new NotFoundException('Carrito no encontrado');
 
-    carrito.items = carrito.items.filter(item => item.producto.producto_k !== productoId);
+  // 🔍 DEBUG: Mostrar todos los items del carrito
+  console.log('📦 Items en carrito:', carrito.items.map(i => ({
+    id: i.id,
+    producto_k: i.producto.producto_k,
+    nombre: i.producto.nombre,
+    tipo_medida: i.tipo_medida,
+    tamano: i.tamano,
+    cantidad: i.cantidad
+  })));
 
-    if (carrito.items.length === 0) {
-      await this.carritoRepo.remove(carrito);
-      return { message: 'Carrito eliminado' };
-    }
+  const item = carrito.items.find(i =>
+    i.producto.producto_k === productoId &&
+    i.tipo_medida === tipo_medida &&
+    ((i.tamano === tamano) || (i.tamano == null && tamano == null))
+  );
 
-    await this.carritoRepo.save(carrito);
-    return { message: 'Producto eliminado del carrito', carrito };
+  console.log('🎯 Item encontrado:', item ? 'SÍ' : 'NO');
+  
+  if (!item) {
+    console.log('❌ Criterios de búsqueda:');
+    console.log('   - Producto ID:', productoId);
+    console.log('   - Tipo medida:', tipo_medida);
+    console.log('   - Tamaño:', tamano);
+    throw new NotFoundException('Producto no encontrado en el carrito');
   }
+  const producto = await this.productoRepo.findOne({
+    where: { producto_k: productoId },
+    relations: ['ofertas'],
+  });
+
+  if (!producto) throw new NotFoundException('Producto no encontrado');
+
+  if (producto.usa_tamano && !tamano) {
+    throw new Error('Debe seleccionar un tamaño para este producto');
+  }
+
+  item.cantidad = nuevaCantidad;
+  item.tipo_medida = tipo_medida;
+  item.tamano = tamano;
+
+  const precioUnitario = this.calcularPrecioConOferta(producto, tipo_medida, tamano);
+
+  const pesoCalculado = producto.requiere_pesaje
+    ? peso_personalizado ?? (
+        producto.usa_tamano && tamano
+          ? tamano === 'Chico' ? producto.peso_chico :
+            tamano === 'Mediano' ? producto.peso_mediano :
+            producto.peso_grande
+          : tipo_medida === 'kg' ? nuevaCantidad * 1000 : nuevaCantidad
+      )
+    : null;
+
+  if (producto.requiere_pesaje && !pesoCalculado && !producto.usa_tamano) {
+    throw new BadRequestException('Peso personalizado requerido para este producto');
+  }
+
+  item.peso_seleccionado = pesoCalculado;
+
+  item.precio_total = producto.requiere_pesaje
+    ? (pesoCalculado / 1000) * precioUnitario
+    : nuevaCantidad * precioUnitario;
+
+  await this.carritoItemRepo.save(item);
+
+  return {
+    message: 'Producto actualizado en el carrito',
+    item: {
+      id: item.id,
+      cantidad: item.cantidad,
+      tipo_medida: item.tipo_medida,
+      peso_seleccionado: item.peso_seleccionado,
+      precio_total: item.precio_total,
+      tamano: item.tamano,
+      producto: {
+        producto_k: producto.producto_k,
+        nombre: producto.nombre,
+        codigo_producto: producto.codigo_producto,
+        unidad_venta: producto.unidad_venta,
+        requiere_pesaje: producto.requiere_pesaje
+      }
+    }
+  };
+}
+
+  
+
+async eliminarProducto(usuarioId: number, productoId: number, tipo_medida: 'kg' | 'pieza') {
+  const carrito = await this.carritoRepo.findOne({
+    where: { usuario: { usuario_k: usuarioId } },
+    relations: ['items', 'items.producto'],
+  });
+
+  if (!carrito) {
+    throw new NotFoundException('No se encontró el carrito del usuario.');
+  }
+
+  const item = carrito.items.find(i => i.producto.producto_k === productoId && i.tipo_medida === tipo_medida);
+  if (!item) {
+    throw new NotFoundException('Producto no encontrado en el carrito.');
+  }
+
+  await this.carritoItemRepo.remove(item);
+  return { mensaje: 'Producto eliminado del carrito' }; // <-- respuesta JSON
+}
+
+
 
 
   async vaciarCarrito(usuarioId: number) {

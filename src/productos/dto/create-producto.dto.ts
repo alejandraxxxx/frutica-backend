@@ -1,4 +1,4 @@
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import { IsString, IsOptional, IsInt, IsBoolean, IsNumber, MaxLength, IsEnum } from 'class-validator';
 
 export class CreateProductoDto {
@@ -25,34 +25,42 @@ export class CreateProductoDto {
     @IsEnum(["kg", "pieza"])
     unidad_venta: "kg" | "pieza";
 
-    /*@Type(() => Number)
-    @IsNumber()
-    precio_estimado: number;*/
-
     @Type(() => Number)
     @IsOptional()
     @IsNumber()
     peso_estimado?: number;
-    
+
     @IsOptional()
     @Type(() => Number)
     @IsInt()
-    total_existencias: number;
+    total_existencias?: number;
 
     @IsOptional()
     @IsBoolean()
-    @Type(() => Boolean)
-    activo: boolean;
+    @Transform(({ value }) => {
+        if (typeof value === 'boolean') return value;
+        if (typeof value === 'string') return value === 'true';
+        return false;
+    })
+    activo?: boolean;
 
     @IsOptional()
     @IsBoolean()
-    @Type(() => Boolean)
-    requiere_pesaje: boolean;
+    @Transform(({ value }) => {
+        if (typeof value === 'boolean') return value;
+        if (typeof value === 'string') return value === 'true';
+        return false;
+    })
+    requiere_pesaje?: boolean;
 
     @IsOptional()
     @IsBoolean()
-    @Type(() => Boolean)
-    usa_tamano: boolean;
+    @Transform(({ value }) => {
+        if (typeof value === 'boolean') return value;
+        if (typeof value === 'string') return value === 'true';
+        return false;
+    })
+    usa_tamano?: boolean;
 
     @IsOptional()
     @IsEnum(["Chico", "Mediano", "Grande"])
@@ -60,8 +68,12 @@ export class CreateProductoDto {
 
     @IsOptional()
     @IsBoolean()
-    @Type(() => Boolean)
-    variaciones_precio: boolean;
+    @Transform(({ value }) => {
+        if (typeof value === 'boolean') return value;
+        if (typeof value === 'string') return value === 'true';
+        return false;
+    })
+    variaciones_precio?: boolean;
 
     @IsOptional()
     @IsString()
@@ -71,7 +83,7 @@ export class CreateProductoDto {
     @IsOptional()
     @IsString()
     @MaxLength(45)
-    proveedor: string;
+    proveedor?: string;
 
     @IsOptional()
     @Type(() => Number)
