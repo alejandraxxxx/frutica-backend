@@ -46,6 +46,8 @@ import { OfertaModule } from './oferta/oferta.module';
 import { Oferta } from './oferta/entities/oferta.entity';
 import { ListaDeseosModule } from './lista-deseos/lista-deseos.module';
 import { ListaDeseos } from './lista-deseos/entities/lista-deseo.entity';
+import { DatosPersonalesModule } from './datos-personales/datos-personales.module';
+import { EmailModule } from './email/email.module';
 
 
 @Module({
@@ -56,17 +58,20 @@ import { ListaDeseos } from './lista-deseos/entities/lista-deseo.entity';
     TypeOrmModule.forRoot({
       type: 'mysql',
       host: 'localhost', // O la IP del servidor donde está phpMyAdmin
-      port: 3306, // Puerto predeterminado de MySQL
+      port: 3308, // Puerto predeterminado de MySQL
       username: 'root', // Usuario de la base de datos
       password: '', // Contraseña de MySQL (deja vacío si no tiene)
-      database: 'frutica-bd', // Nombre de la base de datos en phpMyAdmin
+      database: 'frutica-app1', // Nombre de la base de datos en phpMyAdmin
       entities: [Usuario, Categoria, Producto, Pedido, DetallePedido, Factura, FormaPago, Comentario, InventarioMovimiento,
         Direccion, Venta, DetalleFactura, Notificacion, Credencial, Carrito, CarritoItem, Pago, DatosPersonales, TipoEntrega, Oferta, ListaDeseos],
       synchronize: true, // Solo en desarrollo, en producción usa migraciones
     }),
     UsuariosModule, CategoriaModule, ProductosModule, PedidosModule, DetallePedidoModule,
-    FacturaModule, FormaPagoModule, ComentarioModule, InventarioMovimientoModule, DireccionesModule, VentaModule, DetalleFacturaModule, NotificacionesModule, AuthModule, CredencialesModule,
-    CloudinaryModule, CarritoModule, CarritoItemModule, PagosModule, StripeModule, DatosPersonales, OfertaModule, ListaDeseosModule
+    FacturaModule, FormaPagoModule, ComentarioModule, InventarioMovimientoModule, 
+    DireccionesModule, VentaModule, DetalleFacturaModule, NotificacionesModule, AuthModule,
+    CredencialesModule,
+    CloudinaryModule, CarritoModule, CarritoItemModule, PagosModule, StripeModule, 
+    DatosPersonalesModule, OfertaModule, ListaDeseosModule, EmailModule,
   ],
   controllers: [AppController],
   providers: [AppService],

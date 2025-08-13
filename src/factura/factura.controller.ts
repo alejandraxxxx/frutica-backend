@@ -10,7 +10,7 @@ import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { RolesGuard } from 'src/guards/roles.guard';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Controller('factura')
+@Controller('facturas')
 export class FacturaController {
   constructor(private readonly facturaService: FacturaService) { }
 
@@ -24,12 +24,12 @@ export class FacturaController {
   }
 
   @Get('pdf/:id')
-   @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN)
   generarPDF(@Param('id') id: number, @Res() res: Response) {
     return this.facturaService.generarFacturaDesdeBD(id, res);
   }
-  
-  
+
+
   @Post()
   @Roles(UserRole.ADMIN, UserRole.USER)
   create(@Body() createFacturaDto: CreateFacturaDto) {

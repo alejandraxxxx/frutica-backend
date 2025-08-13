@@ -1,32 +1,31 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-
-import * as bodyParser from 'body-parser'; // Corrección aquí
-
-import * as cors from 'cors';
-
 import { ConfigService } from '@nestjs/config';
-
+import * as bodyParser from 'body-parser';
 
 async function bootstrap() {
-  //Crea la aplicación
   const app = await NestFactory.create(AppModule);
 
-  //Obtén el servicio de configuración
   const configService = app.get(ConfigService);
 
-  //Verifica si JWT_SECRET se está cargando correctamente
-  console.log('🔑 JWT_SECRET:', configService.get<string>('JWT_SECRET')); 
+  console.log('🔑 JWT_SECRET:', configService.get<string>('JWT_SECRET'));
 
-  //Habilita la validación global de DTOs
+  //Prefijo global /api
+  app.setGlobalPrefix('api');
+
   app.useGlobalPipes(new ValidationPipe({
-    whitelist: true, 
-    forbidNonWhitelisted: true, 
-    transform: true, 
+    whitelist: true,
+    forbidNonWhitelisted: true,
+    transform: true,
   }));
 
-  //Configura CORS
+  app.use(bodyParser.json({
+    verify: (req: any, res, buf) => {
+      req.rawBody = buf;
+    },
+  }));
+
   app.enableCors({
     origin: ['http://localhost:8100', 'http://localhost:8101'], // ✅ los dos
     methods: 'GET,POST,PUT,PATCH,DELETE,OPTIONS', // 👈 AGREGA PATCH aquí

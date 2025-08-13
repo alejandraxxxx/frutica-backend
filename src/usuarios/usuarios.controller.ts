@@ -1,7 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Put, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Put, UseGuards, Req, NotFoundException, ParseIntPipe } from '@nestjs/common';
 import { UsuariosService } from './usuarios.service';
 import { CreateUsuarioDto } from './dto/create-usuario.dto';
 import { UpdateUsuarioDto } from './dto/update-usuario.dto';
+import { UserRole } from './entities/usuario.entity';
+import { Roles } from 'src/decorators/roles.decorator';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { RolesGuard } from 'src/guards/roles.guard';
+import { ParseBoolPipe } from '@nestjs/common';
 
 
 
@@ -16,18 +21,63 @@ export class UsuariosController {
 
   // . Obtener todos los usuarios
   @Get()
+  @Roles(UserRole.ADMIN)
   async getAllUsers() {
-    return await this.usuariosService.findAll();
+  const list = await this.usuariosService.findAll();
+  console.log('GET /usuarios ->',
+    list.map(u => ({ id: (u as any).usuario_k, email: (u as any).email }))
+  );
+  return list;
+}
+
+  @Get('mi-perfil')
+  async obtenerMiPerfil(@Req() req: any) {
+    const usuarioId = req.user.id;
+    const usuario = await this.usuariosService.findById(usuarioId);
+
+    if (!usuario) throw new NotFoundException('Usuario no encontrado');
+
+    return {
+      nombre: usuario.nombre,
+      apellido_paterno: usuario.apellido_paterno,
+      apellido_materno: usuario.apellido_materno,
+      telefono: usuario.telefono,
+      sexo: usuario.sexo,
+      email: usuario.credencial?.email ?? null,
+    };
   }
 
   //  Obtener un usuario por ID
   @Get(':id')
+  @Roles(UserRole.ADMIN)
   async getUserById(@Param('id') id: number) {
     return await this.usuariosService.findOne(id);
   }
 
+  /**
+ * PATCH /usuarios/:id/verificado
+ * @body { verificado: boolean }
+ */
+  @Patch(':id/verificado')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  toggleVerificado(
+    @Param('id', ParseIntPipe) id: number,
+    @Body('verificado') verificado: boolean,
+  ) {
+    return this.usuariosService.toggleVerificado(id, verificado);
+  }
+
+  @Patch('mi-perfil')
+  @UseGuards(JwtAuthGuard)
+  async actualizarMiPerfil(@Req() req: any, @Body() body: any) {
+    const usuarioId = req.user.id;
+    return this.usuariosService.update(usuarioId, body);
+  }
+
   // Actualizar usuario por ID
   @Put(':id')
+  @Roles(UserRole.ADMIN)
   async updateUser(@Param('id') id: number, @Body() updateUsuarioDto: UpdateUsuarioDto) {
     return await this.usuariosService.update(id, updateUsuarioDto);
   }

@@ -1,92 +1,200 @@
-import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
-import { CreateUsuarioDto } from './dto/create-usuario.dto';
+import { Injectable, ConflictException, NotFoundException, } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
+
+import { CreateUsuarioDto } from './dto/create-usuario.dto';
 import { UserRole, Usuario } from './entities/usuario.entity';
 import { Credencial } from '../credenciales/entities/credencial.entity';
+import { EmailService } from 'src/email/email.service';
+import { DataSource } from 'typeorm';
+type UsuarioConEmail = Omit<Usuario, 'credenciales'> & { email: string | null };
 
 @Injectable()
 export class UsuariosService {
   constructor(
     @InjectRepository(Usuario)
-    private usuarioRepository: Repository<Usuario>,
+    private readonly usuarioRepository: Repository<Usuario>,
 
     @InjectRepository(Credencial)
-    private credencialRepository: Repository<Credencial>,
-  ) {}
+    private readonly credencialRepository: Repository<Credencial>,
 
-  // Obtener todos los usuarios con credenciales
-  async findAll() {
-    return this.usuarioRepository.find({ relations: ['credenciales'] });
-  }
+    private readonly emailService: EmailService,
+    private readonly dataSource: DataSource,
+  ) { }
 
-  // Buscar un usuario por ID
-  async findOne(id: number) {
-    const usuario = await this.usuarioRepository.findOne({ where: { usuario_k: id }, relations: ['credenciales'] });
+  // Buscar por ID con credenciales
+  async findById(id: number) {
+    const usuario = await this.usuarioRepository.findOne({
+      where: { usuario_k: id },
+      relations: ['credencial'],
+    });
     if (!usuario) {
       throw new NotFoundException(`Usuario con ID ${id} no encontrado`);
     }
     return usuario;
   }
 
-  //  Actualizar usuario
-  async update(id: number, updateUsuarioDto: Partial<CreateUsuarioDto>) {
-    const usuario = await this.findOne(id);
-    if (!usuario) {
-      throw new NotFoundException(`Usuario con ID ${id} no encontrado`);
-    }
-
-    await this.usuarioRepository.update(id, updateUsuarioDto);
-    return this.findOne(id);
+  // Buscar por email en la tabla Credencial (útil para login)
+  async findByEmail(email: string) {
+    return this.credencialRepository.findOne({
+      where: { email },
+      relations: ['usuario'],
+    });
   }
 
-  // Eliminar usuario
-  async remove(id: number) {
-    const usuario = await this.findOne(id);
-    if (usuario) {
-      await this.usuarioRepository.delete(id);
-      return { message: 'Usuario eliminado' };
-    }
-    throw new NotFoundException(`Usuario con ID ${id} no encontrado`);
-  }
+  // Crear usuario + credencial
+  async create(createUsuarioDto: CreateUsuarioDto): Promise<UsuarioConEmail> {
+    const {
+      nombre,
+      apellido_paterno,
+      apellido_materno,
+      telefono,
+      correo_electronico,
+      contrasena,
+      role,
+    } = createUsuarioDto;
 
-  //Crear un usuario y su credencial
-  async create(createUsuarioDto: CreateUsuarioDto): Promise<Usuario> {
-    console.log(' DTO recibido:', createUsuarioDto);
-
-    const { nombre, apellido_paterno, apellido_materno, telefono, correo_electronico, contrasena, role } = createUsuarioDto;
-
-    // 1️Verificar si el correo ya está registrado
-    const existeCorreo = await this.credencialRepository.findOne({ where: { email: correo_electronico } });
+    // Validar correo único (en Credencial)
+    const existeCorreo = await this.credencialRepository.findOne({
+      where: { email: correo_electronico },
+    });
     if (existeCorreo) {
       throw new ConflictException('El correo ya está registrado');
     }
 
-    //  Hashear la contraseña antes de guardarla
-    const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(contrasena, saltRounds);
+    const hashedPassword = await bcrypt.hash(contrasena, 10);
 
-    // 3️Crear usuario en la tabla `usuarios`
+    // Crear usuario
     const nuevoUsuario = this.usuarioRepository.create({
       nombre,
       apellido_paterno,
       apellido_materno,
       telefono,
-      role: role ? UserRole[role.toUpperCase()] : UserRole.USER
+      role: role ? UserRole[role.toUpperCase()] : UserRole.USER,
+      user_verificado: true,
     });
+    const usuarioGuardado = await this.usuarioRepository.save(nuevoUsuario);
 
-    await this.usuarioRepository.save(nuevoUsuario);
-
-    // Crear credencial con email y contraseña hasheada
+    // Crear credencial
     const nuevaCredencial = this.credencialRepository.create({
       email: correo_electronico,
       password_hash: hashedPassword,
-      usuario: nuevoUsuario, // Se asocia directamente con el usuario
+      usuario: usuarioGuardado,
     });
-
     await this.credencialRepository.save(nuevaCredencial);
 
-    return nuevoUsuario;
+    // Correo de bienvenida
+    await this.emailService.enviarBienvenida(correo_electronico, nombre);
+
+    const { credencial, ...resto } = usuarioGuardado as any;
+    return { ...(resto as Usuario), email: correo_electronico };
+  }
+
+  // Listar todos
+  async findAll(): Promise<UsuarioConEmail[]> {
+    const usuarios = await this.usuarioRepository.find({ relations: ['credencial'] });
+    return usuarios.map((u) => {
+      const email = u.credencial?.email ?? null;
+      const { credencial, ...resto } = u as any;
+      return { ...(resto as Usuario), email };
+    });
+  }
+
+
+  // Actualizar datos del usuario
+  async update(id: number, updateUsuarioDto: Partial<CreateUsuarioDto>) {
+    const usuario = await this.findById(id);
+    // Evita sobreescribir campos que no pertenecen a Usuario (ej. correo_electronico va en Credencial)
+    const {
+      correo_electronico, // ignorado aquí
+      contrasena, // ignorado aquí
+      ...soloUsuario
+    } = updateUsuarioDto;
+
+    Object.assign(usuario, soloUsuario);
+    return await this.usuarioRepository.save(usuario);
+  }
+
+  // Actualizar contraseña (y notificar por email)
+  async updatePassword(usuarioId: number, newPassword: string) {
+    // Buscar credencial por usuario
+    const cred = await this.credencialRepository.findOne({
+      where: { usuario: { usuario_k: usuarioId } },
+      relations: ['usuario'],
+    });
+    if (!cred) {
+      throw new NotFoundException('No se encontró la credencial del usuario.');
+    }
+
+    const hashed = await bcrypt.hash(newPassword, 10);
+    cred.password_hash = hashed;
+    await this.credencialRepository.save(cred);
+
+    // Notificar cambio de contraseña (si tenemos email)
+    if (cred.email) {
+      await this.emailService.enviarCambioContrasena(
+        cred.email,
+        cred.usuario?.nombre ?? 'usuario',
+      );
+    }
+
+    return { message: 'Contraseña actualizada correctamente' };
+  }
+
+  // Activar/desactivar cuenta (by admin) + correo
+  async toggleVerificado(id: number, verificado: boolean) {
+    const user = await this.usuarioRepository.findOne({
+      where: { usuario_k: id },
+    });
+    if (!user) {
+      throw new NotFoundException('Usuario no encontrado');
+    }
+
+    user.user_verificado = verificado;
+    await this.usuarioRepository.save(user);
+
+    // Obtener email desde Credencial (si no está en Usuario)
+    let email: string | null = (user as any).email ?? user['credencial']?.email ?? null;
+    if (!email) {
+      const cred = await this.credencialRepository.findOne({
+        where: { usuario: { usuario_k: id } },
+      });
+      email = cred?.email ?? null;
+    }
+
+
+    if (email) {
+      await this.emailService.enviarEstadoCuenta(
+        email,
+        user.nombre ?? 'usuario',
+        verificado,
+        //'https://frutica.app/ayuda', // soporte_url (si quieres)
+      );
+    }
+
+    return { ok: true, user_verificado: user.user_verificado };
+  }
+
+  // Eliminar usuario
+  async remove(id: number) {
+    await this.findById(id); // valida existencia
+    await this.usuarioRepository.delete(id);
+    return { message: 'Usuario eliminado correctamente' };
+  }
+
+  // Obtener uno
+  async findOne(id: number): Promise<UsuarioConEmail> {
+    const u = await this.findById(id);
+    const email = u.credencial?.email ?? null;
+    const { credencial, ...resto } = u as any;
+    return { ...(resto as Usuario), email };
+  }
+
+  // (Si quieres mantener un setter simple)
+  async setVerificado(id: number, verificado: boolean): Promise<Usuario> {
+    const usuario = await this.findById(id);
+    usuario.user_verificado = verificado;
+    return this.usuarioRepository.save(usuario);
   }
 }

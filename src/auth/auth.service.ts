@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, ForbiddenException } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
@@ -6,6 +6,7 @@ import { Credencial } from '../credenciales/entities/credencial.entity';
 import { JwtService } from '@nestjs/jwt';
 import { admin } from 'src/config/firebase.config';
 import { Usuario, UserRole } from 'src/usuarios/entities/usuario.entity';
+import { ForbiddenException } from '@nestjs/common';
 
 @Injectable()
 export class AuthService {
@@ -17,40 +18,41 @@ export class AuthService {
         private readonly usuarioRepository: Repository<Usuario>,
 
         private readonly jwtService: JwtService,
-    ) {}
- 
-    //  Login con credenciales normales
+    ) { }
+
+
+    // ✅ Login con credenciales normales
     async login(email: string, password: string) {
-        // Buscar usuario en la tabla de credenciales
-        const userCredencial = await this.credencialRepository.findOne({ 
-            where: { email }, 
-            relations: ['usuario'] 
+        const userCredencial = await this.credencialRepository.findOne({
+            where: { email },
+            relations: ['usuario']
         });
 
         if (!userCredencial || !userCredencial.usuario) {
             throw new UnauthorizedException('Credenciales incorrectas');
         }
 
-        // Comparar contraseñas
+        //bloqueo de cuenta no esta activa
+        if (!userCredencial.usuario.user_verificado) {
+            throw new ForbiddenException('Tu cuenta no está activa. Contacta al soporte.');
+        }
+
         const passwordMatch = await bcrypt.compare(password, userCredencial.password_hash);
         if (!passwordMatch) {
             throw new UnauthorizedException('Credenciales incorrectas');
         }
 
-        // Obtener el rol del usuario
-        const role = userCredencial.usuario.role;  
-
-        // Generar token de Firebase
         const firebaseToken = await admin.auth().createCustomToken(email);
-        
-        // Generar token JWT local con rol
-        const jwtToken = this.jwtService.sign({
-            email,
-            sub: userCredencial.usuario.usuario_k,
-            role: userCredencial.usuario.role , 
-        });
 
-        // Guardar token en la base de datos
+        const jwtToken = this.jwtService.sign(
+            {
+                email,
+                sub: userCredencial.usuario.usuario_k,
+                role: userCredencial.usuario.role,
+            },
+            { expiresIn: '8h' }
+        );
+
         userCredencial.token = firebaseToken;
         await this.credencialRepository.save(userCredencial);
 
@@ -58,7 +60,7 @@ export class AuthService {
             message: 'Login exitoso',
             firebaseToken,
             jwtToken,
-            role, 
+            role: userCredencial.usuario.role,
         };
     }
 
@@ -66,19 +68,99 @@ export class AuthService {
     async loginWithGoogle(idToken: string) {
         try {
             const decodedToken = await admin.auth().verifyIdToken(idToken);
-            const { email, name, picture } = decodedToken;
+            const { email, name } = decodedToken;
 
-            let user = await this.usuarioRepository.findOne({ 
-                where: { credenciales: { email } }, 
-                relations: ['credenciales'] 
+            if (!email) {
+                throw new UnauthorizedException('El token de Google no contiene un correo válido');
+            }
+
+            // Buscar credencial y usuario
+            let credencial = await this.credencialRepository.findOne({
+                where: { email },
+                relations: ['usuario'],
+            });
+
+            // ⛔ Si ya existe y está desactivado: bloquear
+            if (credencial?.usuario && !credencial.usuario.user_verificado) {
+                throw new ForbiddenException('Tu cuenta no está activa. Contacta al soporte.');
+            }
+
+            if (!credencial) {
+                // Crear usuario
+                const nuevoUsuario = this.usuarioRepository.create({
+                    nombre: name || 'Sin nombre',
+                    sexo: 'Otro',
+                    login_google: true,
+                    role: UserRole.USER,
+                    estado_ENUM: 'activo',
+                    registrado_desde: 'google',
+                    pago_habitual: false,
+                    entrega_habitual: false,
+                    user_verificado: true,
+                });
+
+                const usuarioGuardado = await this.usuarioRepository.save(nuevoUsuario);
+
+                // Crear credencial
+                credencial = this.credencialRepository.create({
+                    email,
+                    usuario: usuarioGuardado,
+                    password_hash: '',
+                });
+
+                credencial = await this.credencialRepository.save(credencial);
+            }
+
+            // Ahora sí: generar JWT local (8 horas)
+            const jwtToken = this.jwtService.sign(
+                {
+                    email,
+                    sub: credencial.usuario.usuario_k,
+                    role: credencial.usuario.role,
+                },
+                { expiresIn: '8h' }
+            );
+
+            //También generar token de Firebase (opcional)
+            const firebaseToken = await admin.auth().createCustomToken(email);
+
+            //Guardar el token generado en la credencial
+            credencial.token = jwtToken;
+            await this.credencialRepository.save(credencial);
+
+            return {
+                message: 'Login con Google exitoso',
+                jwtToken,
+                firebaseToken,
+            };
+        } catch (error) {
+            console.error('❌ Error loginWithGoogle:', error);
+            // Si ya es Forbidden/Unauthorized, Nest respetará el status code
+            if (error instanceof ForbiddenException || error instanceof UnauthorizedException) throw error;
+            throw new UnauthorizedException('Error al iniciar sesión con Google');
+        }
+    }
+
+
+    //Registro/Login con Google (desde el registro normal)
+    async handleGoogleLogin(userData: any) {
+        const { email, nombre, apellido_paterno, apellido_materno, telefono, sexo } = userData;
+
+        try {
+            let user = await this.usuarioRepository.findOne({
+                where: { credencial: { email } },
+                relations: ['credencial']
             });
 
             if (!user) {
                 user = this.usuarioRepository.create({
-                    nombre: name,
-                    sexo: "Otro",
+                    nombre,
+                    apellido_paterno,
+                    apellido_materno: apellido_materno || null,
+                    telefono: telefono || null,
+                    sexo,
                     login_google: true,
-                    role: UserRole.USER, 
+                    role: UserRole.USER,
                     estado_ENUM: 'activo',
                     registrado_desde: 'google',
                     pago_habitual: false,
@@ -90,65 +172,11 @@ export class AuthService {
 
                 const credencial = this.credencialRepository.create({
                     email,
-                    usuario: user, 
-                    password_hash: '', 
+                    usuario: user,
+                    password_hash: '',
                 });
 
                 await this.credencialRepository.save(credencial);
-            }
-
-            // Generar token JWT local
-            const jwtToken = this.jwtService.sign({ 
-                email, 
-                sub: user.usuario_k, 
-                role: user.role 
-            });
-
-            return {
-                message: 'Login con Google exitoso',
-                user,
-                jwtToken,
-            };
-        } catch (error) {
-            throw new UnauthorizedException('Token inválido de Google');
-        }
-    }
-
-    // Registro/Login con Google y almacenamiento en BD
-    async handleGoogleLogin(userData: any) {
-        const { email, nombre, apellido_paterno, apellido_materno, telefono, sexo } = userData;
-        
-        try {
-            let user = await this.usuarioRepository.findOne({ 
-                where: { credenciales: { email } }, 
-                relations: ['credenciales'] 
-            });
-
-            if (!user) {
-                user = this.usuarioRepository.create({
-                    nombre,
-                    apellido_paterno,
-                    apellido_materno: apellido_materno || null,
-                    telefono: telefono || null,
-                    sexo,
-                    login_google: true, 
-                    role: UserRole.USER, 
-                    estado_ENUM: 'activo',
-                    registrado_desde: 'google',
-                    pago_habitual: false,
-                    entrega_habitual: false,
-                    user_verificado: true,
-                });
-
-                user = await this.usuarioRepository.save(user);
-
-                const credential = this.credencialRepository.create({
-                    email,
-                    usuario: user, 
-                    password_hash: '', 
-                });
-
-                await this.credencialRepository.save(credential);
             } else {
                 if (!user.login_google) {
                     user.login_google = true;
@@ -158,11 +186,11 @@ export class AuthService {
 
             return { message: 'Usuario autenticado con éxito', user };
         } catch (error) {
-            throw new Error("No se pudo guardar el usuario en la base de datos.");
+            throw new Error('No se pudo guardar el usuario en la base de datos.');
         }
     }
 
-    // ✅ Verificar y decodificar un token JWT
+    //Verificar y decodificar un token JWT
     async validateToken(token: string) {
         try {
             return this.jwtService.verify(token);
@@ -171,7 +199,7 @@ export class AuthService {
         }
     }
 
-    // ✅ Verificar si un usuario es Admin
+    //Verificar si un usuario es Admin
     async isAdmin(userId: number): Promise<boolean> {
         const user = await this.usuarioRepository.findOne({ where: { usuario_k: userId } });
         return user?.role === UserRole.ADMIN;

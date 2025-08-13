@@ -67,7 +67,7 @@ export class Usuario {
     @Column()
     entrega_habitual: boolean;
 
-    @Column()
+    @Column({ default: true, name: 'user_verificado', type: 'boolean' })
     user_verificado: boolean;
 
     @OneToMany(() => Direccion, direccion => direccion.usuario)
@@ -89,10 +89,11 @@ export class Usuario {
     carrito: Carrito[];
 
     @OneToMany(() => Pago, pago => pago.usuario)
-    pagos: Pago[]; // Relación con la tabla Pago
+    pagos: Pago[];
 
-    @OneToOne(() => Credencial, credencial => credencial.usuario)
-    credenciales: Credencial;
+    @OneToOne(() => Credencial, (cred) => cred.usuario, { cascade: ['insert', 'update'] })
+    credencial: Credencial;
+    ;
 
     @OneToMany(() => DatosPersonales, (datos) => datos.usuario)
     datos: DatosPersonales[];
@@ -100,7 +101,7 @@ export class Usuario {
     @OneToMany(() => ListaDeseos, lista => lista.usuario)
     listaDeseos: ListaDeseos[];
 
-    
+
 }
 
 

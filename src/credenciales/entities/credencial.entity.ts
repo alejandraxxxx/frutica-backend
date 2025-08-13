@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, Unique, OneToOne } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, Unique, OneToOne, JoinColumn } from 'typeorm';
 import { Usuario } from 'src/usuarios/entities/usuario.entity';
 
 @Entity()
@@ -19,6 +19,7 @@ export class Credencial {
     @CreateDateColumn()
     fecha_creacion: Date;
 
-    @ManyToOne(() => Usuario, usuario => usuario.credenciales)
-    usuario: Usuario;
+    @OneToOne(() => Usuario, (u) => u.credencial, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'usuarioUsuarioK', referencedColumnName: 'usuario_k' })
+  usuario: Usuario;
 }

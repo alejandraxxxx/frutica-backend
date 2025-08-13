@@ -63,6 +63,14 @@ export class FacturaService {
         return factura;
     }
 
+    async findByUsuarioId(usuarioId: number) {
+        return this.datosRepository.findOne({
+            where: { usuario: { usuario_k: usuarioId } },
+            relations: ['usuario'], 
+        });
+    }
+
+
     async update(id: number, updateFacturaDto: UpdateFacturaDto): Promise<Factura> {
         const factura = await this.findOne(id);
         Object.assign(factura, updateFacturaDto);
@@ -82,18 +90,18 @@ export class FacturaService {
 
         if (!factura) {
             throw new NotFoundException('Factura no encontrada');
-        } 
+        }
 
 
-    // 🔍 Aquí imprimes todo el objeto
-    console.log('Factura completa:', JSON.stringify(factura, null, 2));
+        // 🔍 Aquí imprimes todo el objeto
+        console.log('Factura completa:', JSON.stringify(factura, null, 2));
 
-    // 🔍 Datos específicos
-    console.log('Nombre cliente:', factura.cliente?.usuario?.nombre);
-    console.log('Correo cliente:', factura.cliente?.usuario?.credenciales?.email);
-    console.log('RFC cliente:', factura.cliente?.rfc);
-    console.log('Forma de pago:', factura.formaPago?.nombre_forma);
-    console.log('Productos:', factura.detallesFactura);
+        // 🔍 Datos específicos
+        console.log('Nombre cliente:', factura.cliente?.usuario?.nombre);
+        console.log('Correo cliente:', factura.cliente?.usuario?.credencial?.email);
+        console.log('RFC cliente:', factura.cliente?.rfc);
+        console.log('Forma de pago:', factura.formaPago?.nombre_forma);
+        console.log('Productos:', factura.detallesFactura);
 
         // Ruta al logo
         const logoPath = path.join(
