@@ -148,8 +148,8 @@ export class AuthService {
 
         try {
             let user = await this.usuarioRepository.findOne({
-                where: { credenciales: { email } },
-                relations: ['credenciales']
+                where: { credencial: { email } },
+                relations: ['credencial']
             });
 
             if (!user) {

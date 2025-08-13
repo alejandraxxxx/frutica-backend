@@ -5,13 +5,16 @@ import { Credencial } from './entities/credencial.entity';
 import { CreateCredencialeDto } from './dto/create-credenciale.dto';
 import { UpdateCredencialeDto } from './dto/update-credenciale.dto';
 import * as bcrypt from 'bcrypt';
+import { EmailService } from 'src/email/email.service';
+
 
 @Injectable()
 export class CredencialesService {
+  emailService: any;
   constructor(
     @InjectRepository(Credencial)
     private readonly credencialesRepository: Repository<Credencial>,
-  ) {}
+  ) { }
 
   async create(createCredencialeDto: CreateCredencialeDto): Promise<Credencial> {
     const nuevaCredencial = this.credencialesRepository.create(createCredencialeDto);
@@ -50,27 +53,39 @@ export class CredencialesService {
   }
 
   // 🔥 Función extra: actualizar contraseña segura
+  // credenciales.service.ts
+
   async actualizarPassword(usuarioId: number, currentPassword: string, newPassword: string) {
     const credencial = await this.credencialesRepository.findOne({
       where: { usuario: { usuario_k: usuarioId } },
       relations: ['usuario'],
     });
+    if (!credencial) throw new NotFoundException('Credencial no encontrada');
 
-    if (!credencial) {
-      throw new NotFoundException('Credencial no encontrada');
+    const ok = await bcrypt.compare(currentPassword, credencial.password_hash);
+    if (!ok) throw new BadRequestException('La contraseña actual no es correcta');
+
+    // evita misma contraseña y aplica reglas mínimas
+    if (await bcrypt.compare(newPassword, credencial.password_hash)) {
+      throw new BadRequestException('La nueva contraseña no puede ser igual a la actual');
+    }
+    if (!newPassword || newPassword.length < 8) {
+      throw new BadRequestException('La nueva contraseña debe tener al menos 8 caracteres');
     }
 
-    const passwordValida = await bcrypt.compare(currentPassword, credencial.password_hash);
-    if (!passwordValida) {
-      throw new BadRequestException('La contraseña actual no es correcta');
-    }
-
-    const salt = await bcrypt.genSalt();
-    const nuevaPasswordHasheada = await bcrypt.hash(newPassword, salt);
-
-    credencial.password_hash = nuevaPasswordHasheada;
+    credencial.password_hash = await bcrypt.hash(newPassword, 10);
     await this.credencialesRepository.save(credencial);
 
-    return { message: 'Contraseña actualizada exitosamente' };
+    // enviar correo (sin romper si falla)
+    try {
+      await this.emailService.enviarCambioContrasena(
+        credencial.email,
+        credencial.usuario?.nombre ?? 'usuario',
+      );
+    } catch (e) {
+      console.error('No se pudo enviar el correo de cambio de contraseña:', e);
+    }
+
+    return { message: 'Contraseña actualizada correctamente' };
   }
-}
+} 

@@ -35,7 +35,7 @@ export class CredencialesController {
 
   @Patch('actualizar-password')
   @UseGuards(JwtAuthGuard)
-  async actualizarPassword(
+  actualizarPassword(
     @Req() req: any,
     @Body() body: { currentPassword: string; newPassword: string }
   ) {

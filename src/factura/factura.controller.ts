@@ -24,12 +24,12 @@ export class FacturaController {
   }
 
   @Get('pdf/:id')
-   @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN)
   generarPDF(@Param('id') id: number, @Res() res: Response) {
     return this.facturaService.generarFacturaDesdeBD(id, res);
   }
-  
-  
+
+
   @Post()
   @Roles(UserRole.ADMIN, UserRole.USER)
   create(@Body() createFacturaDto: CreateFacturaDto) {

@@ -1,5 +1,4 @@
-// src/usuarios/usuarios.service.ts
-import {  Injectable, ConflictException,  NotFoundException,} from '@nestjs/common';
+import { Injectable, ConflictException, NotFoundException, } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
@@ -9,6 +8,7 @@ import { UserRole, Usuario } from './entities/usuario.entity';
 import { Credencial } from '../credenciales/entities/credencial.entity';
 import { EmailService } from 'src/email/email.service';
 import { DataSource } from 'typeorm';
+type UsuarioConEmail = Omit<Usuario, 'credenciales'> & { email: string | null };
 
 @Injectable()
 export class UsuariosService {
@@ -21,13 +21,13 @@ export class UsuariosService {
 
     private readonly emailService: EmailService,
     private readonly dataSource: DataSource,
-  ) {}
+  ) { }
 
   // Buscar por ID con credenciales
   async findById(id: number) {
     const usuario = await this.usuarioRepository.findOne({
       where: { usuario_k: id },
-      relations: ['credenciales'],
+      relations: ['credencial'],
     });
     if (!usuario) {
       throw new NotFoundException(`Usuario con ID ${id} no encontrado`);
@@ -44,7 +44,7 @@ export class UsuariosService {
   }
 
   // Crear usuario + credencial
-  async create(createUsuarioDto: CreateUsuarioDto): Promise<Usuario> {
+  async create(createUsuarioDto: CreateUsuarioDto): Promise<UsuarioConEmail> {
     const {
       nombre,
       apellido_paterno,
@@ -72,23 +72,35 @@ export class UsuariosService {
       apellido_materno,
       telefono,
       role: role ? UserRole[role.toUpperCase()] : UserRole.USER,
-      user_verificado:true,
+      user_verificado: true,
     });
-    await this.usuarioRepository.save(nuevoUsuario);
+    const usuarioGuardado = await this.usuarioRepository.save(nuevoUsuario);
 
     // Crear credencial
     const nuevaCredencial = this.credencialRepository.create({
       email: correo_electronico,
       password_hash: hashedPassword,
-      usuario: nuevoUsuario,
+      usuario: usuarioGuardado,
     });
     await this.credencialRepository.save(nuevaCredencial);
 
     // Correo de bienvenida
     await this.emailService.enviarBienvenida(correo_electronico, nombre);
 
-    return nuevoUsuario;
+    const { credencial, ...resto } = usuarioGuardado as any;
+    return { ...(resto as Usuario), email: correo_electronico };
   }
+
+  // Listar todos
+  async findAll(): Promise<UsuarioConEmail[]> {
+    const usuarios = await this.usuarioRepository.find({ relations: ['credencial'] });
+    return usuarios.map((u) => {
+      const email = u.credencial?.email ?? null;
+      const { credencial, ...resto } = u as any;
+      return { ...(resto as Usuario), email };
+    });
+  }
+
 
   // Actualizar datos del usuario
   async update(id: number, updateUsuarioDto: Partial<CreateUsuarioDto>) {
@@ -143,14 +155,14 @@ export class UsuariosService {
     await this.usuarioRepository.save(user);
 
     // Obtener email desde Credencial (si no está en Usuario)
-    let email: string | null = (user as any).email ?? null;
+    let email: string | null = (user as any).email ?? user['credencial']?.email ?? null;
     if (!email) {
       const cred = await this.credencialRepository.findOne({
         where: { usuario: { usuario_k: id } },
-        relations: ['usuario'],
       });
-      email = cred?.email ?? null; // OJO: el campo correcto es 'email'
+      email = cred?.email ?? null;
     }
+
 
     if (email) {
       await this.emailService.enviarEstadoCuenta(
@@ -171,14 +183,12 @@ export class UsuariosService {
     return { message: 'Usuario eliminado correctamente' };
   }
 
-  // Listar todos
-  async findAll() {
-    return await this.usuarioRepository.find({ relations: ['credenciales'] });
-  }
-
   // Obtener uno
-  async findOne(id: number) {
-    return this.findById(id);
+  async findOne(id: number): Promise<UsuarioConEmail> {
+    const u = await this.findById(id);
+    const email = u.credencial?.email ?? null;
+    const { credencial, ...resto } = u as any;
+    return { ...(resto as Usuario), email };
   }
 
   // (Si quieres mantener un setter simple)

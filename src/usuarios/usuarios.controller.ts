@@ -22,8 +22,12 @@ export class UsuariosController {
   @Get()
   @Roles(UserRole.ADMIN)
   async getAllUsers() {
-    return await this.usuariosService.findAll();
-  }
+  const list = await this.usuariosService.findAll();
+  console.log('GET /usuarios ->',
+    list.map(u => ({ id: (u as any).usuario_k, email: (u as any).email }))
+  );
+  return list;
+}
 
   @Get('mi-perfil')
   async obtenerMiPerfil(@Req() req: any) {
@@ -38,6 +42,7 @@ export class UsuariosController {
       apellido_materno: usuario.apellido_materno,
       telefono: usuario.telefono,
       sexo: usuario.sexo,
+      email: usuario.credencial?.email ?? null,
     };
   }
 

@@ -98,7 +98,7 @@ export class FacturaService {
 
         // 🔍 Datos específicos
         console.log('Nombre cliente:', factura.cliente?.usuario?.nombre);
-        console.log('Correo cliente:', factura.cliente?.usuario?.credenciales?.email);
+        console.log('Correo cliente:', factura.cliente?.usuario?.credencial?.email);
         console.log('RFC cliente:', factura.cliente?.rfc);
         console.log('Forma de pago:', factura.formaPago?.nombre_forma);
         console.log('Productos:', factura.detallesFactura);
