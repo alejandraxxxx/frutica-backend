@@ -32,8 +32,6 @@ export class Pedido {
     @Column({ type: 'enum', enum: EstadoPedido, default: EstadoPedido.SOLICITADO })
     estado: EstadoPedido;
 
-    @ManyToOne(() => FormaPago, formaPago => formaPago.pedidos)
-    formaPago: FormaPago;
 
     @ManyToOne(() => Comentario, comentario => comentario.pedido) 
     comentario: Comentario;
@@ -44,8 +42,9 @@ export class Pedido {
     @OneToMany(() => DetallePedido, detalle => detalle.pedido)
     detalles: DetallePedido[];
 
-    @OneToMany(() => Pago, pago => pago.pedido)
-    pagos: Pago[];
+    @OneToOne(() => Pago, pago => pago.pedido)
+    @JoinColumn() // Esto crea una columna 'pagoId' en la tabla Pedido
+    pago: Pago;
 
     @ManyToOne(() => TipoEntrega, tipo => tipo.pedidos)
     tipoEntrega: TipoEntrega;

@@ -23,71 +23,100 @@ export class ProductosService {
     /**
      * Crear un producto y subir imagen a Cloudinary
      */
-    async create(
-        createProductoDto: CreateProductoDto,
-        user: { id : number; role?: string },
-        files?: Express.Multer.File[],
-      ): Promise<Producto> {
-        const userId = user.id;
-      
-        const {
-          categoriaCategoriaK,
-          unidad_venta,
-          usa_tamano,
-          peso_estimado,
-          peso_chico,
-          peso_mediano,
-          peso_grande,
-          ...rest
-        } = createProductoDto;
-      
-        // Buscar la categoría
-        let categoria = null;
-        if (categoriaCategoriaK) {
-          categoria = await this.categoriaRepo.findOne({
+async create(
+    createProductoDto: CreateProductoDto,
+    user: { id: number; role?: string },
+    files?: Express.Multer.File[],
+): Promise<Producto> {
+    const userId = user.id;
+
+    const {
+        categoriaCategoriaK,
+        unidad_venta = 'kg',
+        usa_tamano = false,
+        peso_estimado,
+        peso_chico,
+        peso_mediano,
+        peso_grande,
+        total_existencias = 0,
+        activo = true,
+        requiere_pesaje = false,
+        variaciones_precio = false,
+        ...rest
+    } = createProductoDto;
+
+    // Buscar la categoría
+    let categoria = null;
+    if (categoriaCategoriaK) {
+        categoria = await this.categoriaRepo.findOne({
             where: { categoria_k: categoriaCategoriaK },
-          });
-          if (!categoria) throw new NotFoundException('Categoría no encontrada');
-        }
-      
-        // Subir imágenes a Cloudinary
-        let imageUrls: string[] = [];
-        if (files && files.length > 0) {
-          if (files.length > 10) throw new BadRequestException('Máximo 10 imágenes');
-          const uploads = await this.cloudinaryService.uploadImages(files, 'productos');
-          imageUrls = uploads.map(img => img.secure_url);
-        }
-      
-        // Peso estimado o cálculo según uso de tamaño
-        let pesoCalculado: number | null = null;
-      
-        if (!usa_tamano) {
-          if (peso_estimado == null) {
-            throw new BadRequestException('Debe proporcionar un peso estimado para este producto.');
-          }
-          pesoCalculado = unidad_venta === 'kg'
-            ? peso_estimado * 1000
-            : peso_estimado;
-        }
-      
-        // Crear el producto
-        const producto = this.productoRepo.create({
-          ...rest,
-          unidad_venta,
-          categoria,
-          foto: imageUrls,
-          usa_tamano,
-          peso_estimado: usa_tamano ? pesoCalculado : peso_estimado,
-          peso_total: usa_tamano ? null : pesoCalculado,
-          peso_chico,
-          peso_mediano,
-          peso_grande,
-          // usuario_creador: await this.usuarioRepo.findOne({ where: { usuario_k: userId } }), // opcional si tienes relación
         });
-      
-        return this.productoRepo.save(producto);
-      }
-      
+        if (!categoria) throw new NotFoundException('Categoría no encontrada');
+    }
+
+    // Subir imágenes a Cloudinary
+    let imageUrls: string[] = [];
+    if (files && files.length > 0) {
+        if (files.length > 10) throw new BadRequestException('Máximo 10 imágenes');
+        const uploads = await this.cloudinaryService.uploadImages(files, 'productos');
+        imageUrls = uploads.map(img => img.secure_url);
+    }
+
+    // Validaciones de peso según configuración
+    if (!usa_tamano) {
+        // Si no usa tamaño, requiere peso_estimado
+        if (!peso_estimado || peso_estimado <= 0) {
+            throw new BadRequestException('Debe proporcionar un peso estimado válido para este producto.');
+        }
+    } else {
+        // Si usa tamaño, validar que tenga los pesos por tamaño
+        if (!peso_chico || peso_chico <= 0) {
+            throw new BadRequestException('Debe proporcionar un peso válido para tamaño chico.');
+        }
+        if (!peso_mediano || peso_mediano <= 0) {
+            throw new BadRequestException('Debe proporcionar un peso válido para tamaño mediano.');
+        }
+        if (!peso_grande || peso_grande <= 0) {
+            throw new BadRequestException('Debe proporcionar un peso válido para tamaño grande.');
+        }
+    }
+
+    // Validar que tenga al menos un precio
+    if (!rest.precio_por_kg && !rest.precio_por_pieza) {
+        throw new BadRequestException('Debe proporcionar al menos precio por kg o precio por pieza.');
+    }
+
+    // Crear el producto (solo campos que existen en la entidad)
+    const producto = this.productoRepo.create({
+        ...rest, // descripcion, precio_por_kg, precio_por_pieza, temporada, proveedor
+        unidad_venta,
+        categoria,
+        foto: imageUrls,
+        usa_tamano,
+        peso_estimado: usa_tamano ? null : peso_estimado, // Solo se usa cuando NO usa tamaño
+        peso_total: usa_tamano ? null : peso_estimado, // Solo se calcula cuando NO usa tamaño
+        peso_chico: usa_tamano ? peso_chico : null,
+        peso_mediano: usa_tamano ? peso_mediano : null,
+        peso_grande: usa_tamano ? peso_grande : null,
+        total_existencias,
+        activo,
+        requiere_pesaje,
+        // Campos que existen en la entidad
+        fecha_actualizacion: new Date(),
+        num_comentarios: 0,
+        numero_ventas: 0,
+        // Nota: variaciones_precio no existe en la entidad, se omite
+    });
+
+    try {
+        const productoGuardado = await this.productoRepo.save(producto);
+        console.log('✅ Producto creado exitosamente:', productoGuardado.producto_k);
+        return productoGuardado;
+    } catch (error) {
+        console.error('❌ Error al guardar producto:', error);
+        throw new BadRequestException('Error al crear el producto');
+    }
+}
 
     /**
      * Obtener todos los productos disponibles
@@ -175,11 +204,34 @@ export class ProductosService {
     /**
      * Buscar productos por nombre
      */
-    async buscar(termino: string) {
-        return this.productoRepo.find({
-            where: { nombre: Like(`%${termino}%`), activo: true },
-        });
-    }
+async buscar(termino: string) {
+  if (!termino || typeof termino !== 'string' || termino.trim() === '') {
+    return [];
+  }
+
+  const terminoBusqueda = `%${termino.trim()}%`;
+       
+  try {
+    return await this.productoRepo
+      .createQueryBuilder('producto')
+      .where('producto.nombre LIKE :nombre', { nombre: terminoBusqueda })
+      .andWhere('producto.activo = :activo', { activo: true })
+      .select([
+        'producto.producto_k',
+        'producto.nombre',
+        'producto.descripcion', 
+        'producto.foto',
+        'producto.precio_por_kg',
+        'producto.precio_por_pieza',
+        'producto.unidad_venta'
+      ])
+      .limit(10)
+      .getMany(); // Cambia getRawMany() por getMany()
+  } catch (error) {
+    console.error('Error en búsqueda:', error);
+    throw new Error('Error al buscar productos');
+  }
+}
 
     async updateImage(id: number, file: Express.Multer.File): Promise<Producto> {
         const producto = await this.findOne(id);

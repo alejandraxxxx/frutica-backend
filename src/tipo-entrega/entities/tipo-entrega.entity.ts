@@ -1,14 +1,15 @@
 import { Direccion } from "src/direccion/entities/direccion.entity";
 import { Pedido } from "src/pedidos/entities/pedidos.entity";
 import { Column, Entity, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { TipoEntregaEnum } from "../dto/create-tipo-entrega.dto";
 
 @Entity()
 export class TipoEntrega {
   @PrimaryGeneratedColumn()
   envio_k: number;
 
-  @Column({ type: "enum", enum: ["Entrega a domicilio", "Pasar a recoger"] })
-  metodo_entrega: "Entrega a domicilio" | "Pasar a recoger";
+  @Column({ type: 'enum', enum: TipoEntregaEnum })
+  metodo_entrega: TipoEntregaEnum;
 
   @ManyToOne(() => Direccion, direccion => direccion.envios)
   direccion: Direccion;

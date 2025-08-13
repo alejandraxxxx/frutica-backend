@@ -13,7 +13,7 @@ export class TipoEntregaController {
   constructor(private readonly tipoEntregaService: TipoEntregaService) {}
 
   @Post()
-   @Roles(UserRole.ADMIN)
+   @Roles(UserRole.ADMIN, UserRole.USER)
   create(@Body() createTipoEntregaDto: CreateTipoEntregaDto) {
     return this.tipoEntregaService.create(createTipoEntregaDto);
   }

@@ -25,7 +25,6 @@ import { Roles } from 'src/decorators/roles.decorator';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { RolesGuard } from 'src/guards/roles.guard';
 
-
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('pedidos')
 export class PedidosController {
@@ -35,7 +34,7 @@ export class PedidosController {
   ) {}
 
   @Post()
-   @Roles(UserRole.USER)
+  @Roles(UserRole.USER)
   async crearPedido(
     @Body() createPedidoDto: CreatePedidoDto,
     @Req() req: Request,
@@ -45,21 +44,17 @@ export class PedidosController {
   }
 
   @Get('ver_pedidos_usuario/:usuarioId')
-   @Roles(UserRole.ADMIN, UserRole.USER)
+  @Roles(UserRole.ADMIN, UserRole.USER)
   getPedidosPorUsuario(
     @Param('usuarioId', ParseIntPipe) usuarioId: number,
   ) {
     return this.pedidosService.getPedidosPorUsuario(usuarioId);
   }
 
-  /**
-   * Filtro por estado: uno o varios separados por coma.
-   * Ej: ?estado=aprobado o ?estado=aprobado,entregado
-   */
   @Get('por-estado')
-   @Roles(UserRole.ADMIN, UserRole.USER)
+  @Roles(UserRole.ADMIN, UserRole.USER)
   async obtenerPorEstado(@Query('estado') estadoRaw: string) {
-    console.log(' Query param recibido:', estadoRaw);
+    console.log('Query param recibido:', estadoRaw);
 
     if (!estadoRaw) {
       throw new BadRequestException('El parámetro "estado" es obligatorio');
@@ -80,41 +75,38 @@ export class PedidosController {
   }
 
   @Get('filtro')
-   @Roles(UserRole.ADMIN)
-async obtenerPorFiltros(
-  @Query('estado') estadoRaw: string,
-  @Query('usuario') usuarioRaw?: string,
-  @Query('desde') desdeRaw?: string,
-  @Query('hasta') hastaRaw?: string,
-  @Query('metodoPago') metodoPagoRaw?: string,
-) {
-  const estados = estadoRaw?.split(',').map(e => e.trim()) as EstadoPedido[] || [];
-  const estadosValidos = Object.values(EstadoPedido);
-  const estadosInvalidos = estados.filter(e => !estadosValidos.includes(e));
-  if (estadosInvalidos.length > 0) {
-    throw new BadRequestException(`Estados inválidos: ${estadosInvalidos.join(', ')}`);
+  @Roles(UserRole.ADMIN)
+  async obtenerPorFiltros(
+    @Query('estado') estadoRaw: string,
+    @Query('usuario') usuarioRaw?: string,
+    @Query('desde') desdeRaw?: string,
+    @Query('hasta') hastaRaw?: string,
+    @Query('metodoPago') metodoPagoRaw?: string,
+  ) {
+    const estados = estadoRaw?.split(',').map(e => e.trim()) as EstadoPedido[] || [];
+    const estadosValidos = Object.values(EstadoPedido);
+    const estadosInvalidos = estados.filter(e => !estadosValidos.includes(e));
+    if (estadosInvalidos.length > 0) {
+      throw new BadRequestException(`Estados inválidos: ${estadosInvalidos.join(', ')}`);
+    }
+
+    const usuarioId = usuarioRaw ? Number(usuarioRaw) : undefined;
+    if (usuarioRaw && isNaN(usuarioId)) {
+      throw new BadRequestException('El parámetro "usuario" debe ser numérico');
+    }
+
+    const desde = desdeRaw ? new Date(desdeRaw) : undefined;
+    const hasta = hastaRaw ? new Date(hastaRaw) : undefined;
+
+    return this.pedidosService.obtenerPedidosPorFiltros({
+      estados,
+      usuarioId,
+      desde,
+      hasta,
+      metodoPago: metodoPagoRaw,
+    });
   }
 
-  const usuarioId = usuarioRaw ? Number(usuarioRaw) : undefined;
-  if (usuarioRaw && isNaN(usuarioId)) {
-    throw new BadRequestException('El parámetro "usuario" debe ser numérico');
-  }
-
-  const desde = desdeRaw ? new Date(desdeRaw) : undefined;
-  const hasta = hastaRaw ? new Date(hastaRaw) : undefined;
-
-  return this.pedidosService.obtenerPedidosPorFiltros({
-    estados,
-    usuarioId,
-    desde,
-    hasta,
-    metodoPago: metodoPagoRaw,
-  });
-}
-
-  /**
-   * Diagnóstico de estructura y datos en la tabla `pedido`
-   */
   @Get('diagnostico/tabla')
   async diagnosticarTablaPedido() {
     try {
@@ -129,33 +121,15 @@ async obtenerPorFiltros(
     }
   }
 
+  // 🔥 ESTE ES EL ENDPOINT CLAVE - Incluye relación de usuario para admin
   @Get()
-   @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN)
   findAll() {
-    return this.pedidosService.findAll();
-  }
-
-  /**
-   * Este método DEBE estar al final para evitar conflictos con otras rutas.
-   */
-  @Get(':pedidoId')
-   @Roles(UserRole.ADMIN, UserRole.USER)
-  getDetallePedido(
-    @Param('pedidoId', ParseIntPipe) pedidoId: number,
-  ) {
-    return this.pedidosService.getDetallePedido(pedidoId);
-  }
-
-  @Get('usuario/:id')
-   @Roles(UserRole.ADMIN, UserRole.USER)
-  async obtenerPedidosPorUsuario(
-    @Param('id', ParseIntPipe) id: number,
-  ) {
-    return this.pedidosService.obtenerPedidosPorUsuario(id);
+    return this.pedidosService.findAllConUsuario(); // 👈 Cambiamos aquí
   }
 
   @Patch(':id')
-   @Roles(UserRole.ADMIN, UserRole.USER)
+  @Roles(UserRole.ADMIN, UserRole.USER)
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updatePedidoDto: UpdatePedidoDto,
@@ -164,19 +138,52 @@ async obtenerPorFiltros(
   }
 
   @Patch(':id/cambiar-estado')
-   @Roles(UserRole.ADMIN)
-  async cambiarEstado(
+ @Roles(UserRole.ADMIN, UserRole.USER)
+   async cambiarEstado(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: CambiarEstadoPedidoDto,
   ) {
     return this.pedidosService.cambiarEstado(id, dto);
   }
+  @Patch(':id/cancelar')
+  @Roles(UserRole.ADMIN, UserRole.USER)
+async cancelarPedido(
+  @Param('id', ParseIntPipe) id: number,
+  @Body() body: { motivo?: string },
+  @Req() req: Request,
+) {
+  const usuarioId = (req as any).user?.userId;
+  const rolUsuario = (req as any).user?.role;
+  
+  console.log(`🔄 Usuario ${usuarioId} (${rolUsuario}) cancelando pedido ${id}`);
+  
+  return this.pedidosService.cancelarPedido(id, usuarioId, rolUsuario, body.motivo);
+}
 
   @Delete(':id')
-   @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN)
   remove(
     @Param('id', ParseIntPipe) id: number,
   ) {
     return this.pedidosService.remove(id);
+  }
+
+  @Get('usuario/:id') // Este debe ir antes del ':pedidoId'
+  @Roles(UserRole.ADMIN, UserRole.USER)
+  async obtenerPedidosPorUsuario(
+    @Param('id', ParseIntPipe) id: number,
+  ) {
+    return this.pedidosService.obtenerPedidosPorUsuario(id);
+  }
+
+  /**
+   *  ESTA RUTA VA AL FINAL
+   */
+  @Get(':pedidoId')
+  @Roles(UserRole.ADMIN, UserRole.USER)
+  getDetallePedido(
+    @Param('pedidoId', ParseIntPipe) pedidoId: number,
+  ) {
+    return this.pedidosService.getDetallePedido(pedidoId);
   }
 }

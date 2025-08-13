@@ -4,4 +4,6 @@ export enum PagoState {
     CANCELADO = 'Cancelado',
     EN_PROCESO ='En proceso',
     EN_REVISION ='En revisión',
+    RECHAZADO = 'Rechazado', 
+
   }

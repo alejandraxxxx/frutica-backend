@@ -8,7 +8,8 @@ import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { RolesGuard } from 'src/guards/roles.guard';
 import { ParseBoolPipe } from '@nestjs/common';
 
-@UseGuards(JwtAuthGuard, RolesGuard)
+
+
 @Controller('usuarios')
 export class UsuariosController {
   constructor(private readonly usuariosService: UsuariosService) { }
@@ -83,7 +84,6 @@ export class UsuariosController {
 
   // Eliminar usuario por ID
   @Delete(':id')
-  @Roles(UserRole.ADMIN)
   async deleteUser(@Param('id') id: number) {
     return await this.usuariosService.remove(id);
   }

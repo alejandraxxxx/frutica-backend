@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Put, BadRequestException, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Put, BadRequestException, UseGuards, Req, ParseIntPipe } from '@nestjs/common';
 import { CarritoService } from './carrito.service';
 import { CreateCarritoDto } from './dto/create-carrito.dto';
 import { UpdateCarritoDto } from './dto/update-carrito.dto';
@@ -6,6 +6,7 @@ import { Roles } from 'src/decorators/roles.decorator';
 import { RolesGuard } from 'src/guards/roles.guard';
 import { UserRole, Usuario } from 'src/usuarios/entities/usuario.entity';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { IsEnum } from 'class-validator';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('carrito')
@@ -14,11 +15,11 @@ export class CarritoController {
 
   
     // Obtener el carrito de un usuario
-    @Get(':usuarioId')
-    @Roles(UserRole.ADMIN, UserRole.USER)
-    async obtenerCarrito(@Param('usuarioId') usuarioId: number) {
-        return this.carritoService.obtenerCarrito(usuarioId);
-    }
+@Get(':usuarioId')
+@Roles(UserRole.ADMIN, UserRole.USER)
+async obtenerCarrito(@Param('usuarioId', ParseIntPipe) usuarioId: number) {
+  return this.carritoService.obtenerCarrito(usuarioId);
+}
 
     // Agregar producto al carrito
     @Post('agregar')
@@ -39,7 +40,7 @@ export class CarritoController {
      */
     @Patch(':usuarioId/:productoId')
     @Roles(UserRole.USER)
-    editarProducto(
+    async editarProducto(
       @Param('usuarioId') usuarioId: number,
       @Param('productoId') productoId: number,
       @Body() data: {
@@ -69,17 +70,21 @@ export class CarritoController {
       return this.carritoService.vaciarCarrito(usuarioId);
     }
   
-    @Delete(':usuarioId/:productoId') //después esta
-    @Roles(UserRole.USER)
-    eliminarProducto(
-      @Param('usuarioId') usuarioId: number,
-      @Param('productoId') productoId: number
-    ) {
-      return this.carritoService.eliminarProducto(
-        Number(usuarioId),
-        Number(productoId)
-      );
-    }
+@Delete(':usuarioId/:productoId/:tipo_medida')
+@Roles(UserRole.USER)
+async eliminarProducto(
+  @Param('usuarioId') usuarioId: number,
+  @Param('productoId') productoId: number,
+  @Param('tipo_medida') tipo_medida: 'kg' | 'pieza'
+) {
+  return this.carritoService.eliminarProducto(
+    usuarioId,
+    productoId,
+    tipo_medida
+  );
+}
+
+
 
     
 }

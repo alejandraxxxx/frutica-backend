@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { TipoEntrega } from './entities/tipo-entrega.entity';
 import { Direccion } from 'src/direccion/entities/direccion.entity';
-import { CreateTipoEntregaDto } from './dto/create-tipo-entrega.dto';
+import { CreateTipoEntregaDto, TipoEntregaEnum } from './dto/create-tipo-entrega.dto';
 import { UpdateTipoEntregaDto } from './dto/update-tipo-entrega.dto';
 
 @Injectable()
@@ -16,13 +16,12 @@ export class TipoEntregaService {
   ) {}
 
   async create(dto: CreateTipoEntregaDto): Promise<TipoEntrega> {
-    // Opción ligera: ya no traes la dirección completa
     const tipoEntrega = this.tipoEntregaRepository.create({
-      metodo_entrega: dto.metodo_entrega,
-      direccion: { direccion_k: dto.direccionId } as Direccion, // solo referencia
+      metodo_entrega: dto.metodo_entrega as TipoEntregaEnum, // 👈 aquí casteas
+      direccion: { direccion_k: dto.direccionId } as Direccion,
       repartidor: dto.repartidor ?? null,
       fecha_creacion_envio: new Date(),
-      fecha_estimada_entrega: dto.fecha_estimada_entrega,
+      fecha_estimada_entrega: new Date(dto.fecha_estimada_entrega),
       hora_estimada_entrega: dto.hora_estimada_entrega,
       costo_envio: dto.costo_envio,
       estado: dto.estado ?? 'pendiente',

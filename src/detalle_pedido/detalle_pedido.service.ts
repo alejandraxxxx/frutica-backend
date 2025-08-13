@@ -16,7 +16,9 @@ export class DetallePedidoService {
   ) {}
 
   async create(createDetallePedidoDto: CreateDetallePedidoDto): Promise<DetallePedido> {
-      const pedido = await this.pedidoRepository.findOne({ where: { pedido_k: createDetallePedidoDto.pedidoPedidoK } });
+      const pedido = await this.pedidoRepository.findOne({ where: { pedido_k: createDetallePedidoDto.pedidoPedidoK },
+        relations: ['pagos']
+    });
       if (!pedido) {
           throw new NotFoundException(`Pedido con ID ${createDetallePedidoDto.pedidoPedidoK} no encontrado`);
       }
