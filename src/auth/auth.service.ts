@@ -7,6 +7,9 @@ import { JwtService } from '@nestjs/jwt';
 import { admin } from 'src/config/firebase.config';
 import { Usuario, UserRole } from 'src/usuarios/entities/usuario.entity';
 import { ForbiddenException } from '@nestjs/common';
+import { EmailService } from 'src/email/email.service';
+import { randomBytes } from 'crypto';
+
 
 @Injectable()
 export class AuthService {
@@ -18,6 +21,7 @@ export class AuthService {
         private readonly usuarioRepository: Repository<Usuario>,
 
         private readonly jwtService: JwtService,
+        private readonly emailService: EmailService,
     ) { }
 
 
@@ -65,81 +69,84 @@ export class AuthService {
     }
 
     // ✅ Login con Google basado en ID Token de Firebase
+
     async loginWithGoogle(idToken: string) {
         try {
-            const decodedToken = await admin.auth().verifyIdToken(idToken);
-            const { email, name } = decodedToken;
+            const decoded = await admin.auth().verifyIdToken(idToken);
+            const email = decoded.email;
+            const nombre = decoded.name ?? (email ? email.split('@')[0] : 'Sin nombre');
+
 
             if (!email) {
                 throw new UnauthorizedException('El token de Google no contiene un correo válido');
             }
 
-            // Buscar credencial y usuario
             let credencial = await this.credencialRepository.findOne({
                 where: { email },
                 relations: ['usuario'],
             });
 
-            // ⛔ Si ya existe y está desactivado: bloquear
+            // ⛔ Bloqueado si existe y no verificado
             if (credencial?.usuario && !credencial.usuario.user_verificado) {
                 throw new ForbiddenException('Tu cuenta no está activa. Contacta al soporte.');
             }
+            let esNuevo = false;
 
             if (!credencial) {
-                // Crear usuario
+                esNuevo = true;
+                //Crear usuario + credencial si no existe
                 const nuevoUsuario = this.usuarioRepository.create({
-                    nombre: name || 'Sin nombre',
-                    sexo: 'Otro',
+                    nombre,
+                    sexo: 'Otro' as any,
                     login_google: true,
                     role: UserRole.USER,
-                    estado_ENUM: 'activo',
+                    estado_ENUM: 'activo' as any,
                     registrado_desde: 'google',
                     pago_habitual: false,
                     entrega_habitual: false,
                     user_verificado: true,
                 });
+                // ✅ password_hash “dummy” para cumplir NOT NULL
+                const dummy = randomBytes(32).toString('hex');         
+                const password_hash = await bcrypt.hash(dummy, 10);
 
                 const usuarioGuardado = await this.usuarioRepository.save(nuevoUsuario);
 
-                // Crear credencial
                 credencial = this.credencialRepository.create({
                     email,
                     usuario: usuarioGuardado,
-                    password_hash: '',
+                    password_hash,
+                    token: '',
                 });
 
                 credencial = await this.credencialRepository.save(credencial);
             }
 
-            // Ahora sí: generar JWT local (8 horas)
-            const jwtToken = this.jwtService.sign(
+            const jwtToken = await this.jwtService.signAsync(
                 {
                     email,
                     sub: credencial.usuario.usuario_k,
                     role: credencial.usuario.role,
                 },
-                { expiresIn: '8h' }
+                { expiresIn: '8h' },
             );
-
-            //También generar token de Firebase (opcional)
-            const firebaseToken = await admin.auth().createCustomToken(email);
-
-            //Guardar el token generado en la credencial
-            credencial.token = jwtToken;
-            await this.credencialRepository.save(credencial);
-
+            //envía bienvenida
+            if (esNuevo) {
+                this.emailService.enviarBienvenida(email, nombre)
+                    .catch(err => console.error('No se pudo enviar correo de bienvenida:', err));
+            }
             return {
                 message: 'Login con Google exitoso',
                 jwtToken,
-                firebaseToken,
+                user: credencial.usuario,
             };
         } catch (error) {
             console.error('❌ Error loginWithGoogle:', error);
-            // Si ya es Forbidden/Unauthorized, Nest respetará el status code
             if (error instanceof ForbiddenException || error instanceof UnauthorizedException) throw error;
             throw new UnauthorizedException('Error al iniciar sesión con Google');
         }
     }
+
 
 
     //Registro/Login con Google (desde el registro normal)
